@@ -1,0 +1,15 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "pv-predesign",
+      "runtimeExecutable": "py",
+      "runtimeArgs": [
+        "-3",
+        "C:\\Users\\ddicarlo\\OneDrive - URBASOLAR\\Desktop\\CLAUDE CODE\\Predesign FV\\scripts\\serve.py",
+        "8140"
+      ],
+      "port": 8140
+    }
+  ]
+}

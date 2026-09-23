@@ -1,0 +1,142 @@
+{
+  "schema": "pv-predesign-catalog",
+  "version": "0.1.0",
+  "updated": "2026-09-23",
+  "owner": "Design ESQ team (Urbasolar) - to be confirmed",
+  "notes": "Transcribed from the Design ESQ toolkit sheets. Every value carries its source; 'verify: true' marks values read from text extraction that still need a check on the DWG. Structure presets only fix module counts, gaps and defaults: table sizes are computed from the chosen module, pitch is always set by the user (the tool suggests the toolkit minimum).",
+  "sources": {
+    "CS": "Toolkit_FR/DESIGN/TOOLKIT_ESQ-CS_V2.pdf (ground-mounted, fixed)",
+    "AGRI": "Toolkit_FR/DESIGN/TOOLKIT_ESQ-AGRI PV_V4.pdf (agrivoltaics)",
+    "NORMES": "Toolkit_FR/DESIGN/TOOLKIT_ESQ-NORMES_V2.pdf (design doctrine)",
+    "PC": "Toolkit_FR/DESIGN/TOOLKIT_ESQ-PERMIS DE CONSTRUIRE_V5.pdf (building permit details)"
+  },
+
+  "defaults": {
+    "moduleGap": { "value": 0.02, "unit": "m", "source": "CS", "note": "Reproduces every CS table length: n*W + (n-1)*0.02 (2V13 14.98, 3V9 10.37, 3V18 20.75 with W = 1.134)" },
+    "tableGap": { "value": 0.30, "unit": "m", "source": "CS", "note": "gap between consecutive tables along a row" },
+    "fixed": {
+      "tiltDeg": { "value": 15, "source": "CS" },
+      "azimuthDeg": { "value": 180, "source": "CS", "note": "facing south" },
+      "lowEdgeHeight": { "value": 1.1, "unit": "m", "source": "CS" },
+      "maxShadingAngleDeg": { "value": 35, "source": "CS", "note": "Angle d'ombrage maximal de 35 deg: minimum pitch = D*cos(tilt) + D*sin(tilt)/tan(35 deg). Checked on the 3V9 section: 6.94 + 2.66 = 9.60 m" }
+    },
+    "transversalTrack": {
+      "spacing": { "value": 100, "unit": "m", "source": "CS, AGRI, NORMES", "note": "Piste transversale tous les 100 m (Est/Ouest)" },
+      "width": { "value": 4, "unit": "m", "verify": true, "note": "width not found in the extracted text - to confirm" }
+    }
+  },
+
+  "structures": [
+    {
+      "id": "2V13", "technology": "ground-fixed", "label": "Fixed 2V13", "notation": "2V13",
+      "tiltDeg": 15, "azimuthDeg": 180, "lowEdgeHeight": 1.1,
+      "foundations": ["piles", "concrete-longrine", "shallow"],
+      "note": "for 144-cell M10 modules, bifacial or monofacial",
+      "reference": { "moduleWidth": 1.134, "moduleLength": 2.382, "tableLength": 14.98, "planDepth": 4.62, "highEdge": 2.37, "source": "CS" }
+    },
+    {
+      "id": "3V6", "technology": "ground-fixed", "label": "Fixed 3V6", "notation": "3V6",
+      "tiltDeg": 15, "azimuthDeg": 180, "lowEdgeHeight": 1.1,
+      "foundations": ["piles", "concrete-longrine", "shallow"],
+      "note": "for 'Europe PERC' modules",
+      "reference": { "tableLength": 6.97, "planDepth": 6.12, "highEdge": 2.77, "source": "CS", "verify": true }
+    },
+    {
+      "id": "3V12", "technology": "ground-fixed", "label": "Fixed 3V12", "notation": "3V12",
+      "tiltDeg": 15, "azimuthDeg": 180, "lowEdgeHeight": 1.1,
+      "foundations": ["piles", "concrete-longrine", "shallow"],
+      "note": "for 'Europe PERC' modules",
+      "reference": { "tableLength": 13.96, "planDepth": 6.12, "highEdge": 2.77, "source": "CS", "verify": true }
+    },
+    {
+      "id": "3V9", "technology": "ground-fixed", "label": "Fixed 3V9", "notation": "3V9",
+      "tiltDeg": 15, "azimuthDeg": 180, "lowEdgeHeight": 1.1,
+      "foundations": ["piles", "concrete-longrine", "shallow"],
+      "note": "for 132-cell M10 bifacial modules",
+      "reference": { "moduleWidth": 1.134, "moduleLength": 2.382, "tableLength": 10.37, "planDepth": 6.94, "interRowGap": 2.66, "pitch": 9.6, "highEdge": 2.99, "source": "CS" }
+    },
+    {
+      "id": "3V18", "technology": "ground-fixed", "label": "Fixed 3V18", "notation": "3V18",
+      "tiltDeg": 15, "azimuthDeg": 180, "lowEdgeHeight": 1.1,
+      "foundations": ["piles", "concrete-longrine", "shallow"],
+      "note": "for 132-cell M10 bifacial modules",
+      "reference": { "moduleWidth": 1.134, "moduleLength": 2.382, "tableLength": 20.75, "planDepth": 6.94, "source": "CS" }
+    },
+
+    {
+      "id": "AGRI-SHADE-CATTLE-2V9", "technology": "agri-fixed", "label": "AgriPV cattle shade 2V9", "notation": "2V9",
+      "tiltDeg": 20, "azimuthDeg": 180, "minPitch": 12,
+      "note": "Ombriere elevage bovin, south. 12 m minimum pitch, adjusted case by case to keep PV coverage <= 40%",
+      "source": "AGRI", "verify": true
+    },
+    {
+      "id": "AGRI-SHADE-SHEEP-2V9", "technology": "agri-fixed", "label": "AgriPV sheep shade 2V9", "notation": "2V9",
+      "tiltDeg": 20, "azimuthDeg": 180, "minPitch": 13,
+      "note": "Ombriere elevage ovin, south; module 2.382 x 1.134 (projected 2.238 x 1.134). Minimum pitch 12 or 13 m in the sheet - to confirm",
+      "source": "AGRI", "verify": true
+    },
+    {
+      "id": "AGRI-SHADE-SHEEP-FNO-3H8", "technology": "agri-fixed", "label": "AgriPV sheep shade FNO 3H8", "notation": "3H8",
+      "tiltDeg": 20, "azimuthDeg": 180, "minPitch": 8.1,
+      "note": "Version charte FNO, 3 modules landscape, south",
+      "source": "AGRI", "verify": true
+    },
+    {
+      "id": "AGRI-AVIARY-10H", "technology": "agri-fixed", "label": "AgriPV aviary (10 landscape)", "notation": "10H1",
+      "tiltDeg": 11.3, "azimuthDeg": 180,
+      "note": "Voliere PV / bird shed, 10 modules landscape (example module 1.762 x 1.134), tilt 20% = 11.3 deg. Heights may vary",
+      "source": "AGRI", "verify": true
+    },
+    {
+      "id": "AGRI-TRACKER-1V", "technology": "agri-tracker", "label": "AgriPV tracker canopy 1V", "notation": "1V26",
+      "rotationDeg": 60, "axis": "north-south",
+      "note": "Canopee trackers, 1 module portrait, east/west one-axis tracking, tilt +60/-60 deg. Spacing between structures on the north/south facade 6, 9 or 12 m (single or double post variants)",
+      "source": "AGRI", "verify": true
+    },
+    {
+      "id": "AGRI-TRACKER-2V26", "technology": "agri-tracker", "label": "AgriPV tracker 2V26", "notation": "2V26",
+      "rotationDeg": 55, "axis": "north-south", "lowPointAtMaxRotation": 0.5, "axisHeight": 2.37,
+      "note": "2 modules portrait, east/west one-axis tracking, tilt +55/-55 deg: low point 0.5 m, median 2.37 m",
+      "source": "AGRI", "verify": true
+    }
+  ],
+
+  "rules": [
+    { "id": "max-shading-angle", "applies": ["ground-fixed"], "value": 35, "unit": "deg", "source": "CS", "text": "Angle d'ombrage maximal de 35 deg" },
+    { "id": "transversal-track", "applies": ["ground-fixed", "agri-fixed", "agri-tracker"], "spacing": 100, "unit": "m", "source": "CS, AGRI, NORMES", "text": "Piste transversale tous les 100 m (Est/Ouest)" },
+    { "id": "agri-max-coverage", "applies": ["agri-fixed", "agri-tracker"], "value": 0.40, "source": "AGRI", "text": "40% de couverture PV maximum" },
+    { "id": "agri-crop-slope", "applies": ["agri-fixed"], "value": 5, "max": 6, "unit": "%", "source": "AGRI", "text": "Ombrieres de culture: 5% (max 6% with extra cost), in one direction only" },
+    { "id": "tracker-2v-azimuth", "applies": ["agri-tracker"], "value": 30, "unit": "deg", "source": "AGRI", "text": "Tracker 2V: at most +30 deg (south = 0) towards east or west" },
+    { "id": "canopy-expansion-joint", "applies": ["agri-fixed"], "value": 0.30, "every": 100, "unit": "m", "source": "AGRI", "text": "30 cm expansion joint for canopies longer than 100 m, repeated every 100 m" },
+    { "id": "fire-tank-near-entrance", "applies": ["all"], "maxDistance": 50, "unit": "m", "source": "NORMES", "text": "Fire water tank always close to the entrance and a track (max 50 m)" },
+    { "id": "delivery-station-at-entrance", "applies": ["all"], "source": "NORMES", "text": "Delivery station (PDL) as close as possible to the grid connection, at the entrance, flush with the fence (DSO access)" },
+    { "id": "transformer-stations-by-power", "applies": ["all"], "source": "NORMES", "text": "Split the project power over transformer stations (PDT). Example: 6 MWp = 2 PDT, units of 4 MWp and 2.5 MWp" },
+    { "id": "avoid-grid-lines", "applies": ["all"], "source": "NORMES", "text": "Avoid overhead power lines and underground grid" },
+    { "id": "overhead-line-clearance", "applies": ["all"], "source": "NORMES", "text": "Overhead line: > 3 m if HTB, > 5 m if HTA", "verify": true }
+  ],
+
+  "buildings": [
+    { "id": "PDL-A", "kind": "delivery-station", "label": "Delivery station (PDL) type A", "length": 5.00, "width": 2.60, "area": 13.0, "source": "PC" },
+    { "id": "PDT-420", "kind": "transformer-station", "label": "Transformer station 4.20 x 2.60", "length": 4.20, "width": 2.60, "area": 10.92, "source": "PC", "verify": true },
+    { "id": "PDT-500", "kind": "transformer-station", "label": "Transformer station 5.00 x 2.60", "length": 5.00, "width": 2.60, "area": 13.0, "source": "PC", "verify": true },
+    { "id": "PDT-530", "kind": "transformer-station", "label": "Transformer station 5.30 x 3.00", "length": 5.30, "width": 3.00, "area": 15.9, "source": "PC", "verify": true },
+    { "id": "PDT-650", "kind": "transformer-station", "label": "Transformer station 6.50 x 3.00", "length": 6.50, "width": 3.00, "area": 19.5, "source": "PC", "verify": true }
+  ],
+  "transformerTypes": [
+    { "type": "C", "kVA": [1250], "source": "PC" },
+    { "type": "D", "kVA": [2000, 2500], "source": "PC" },
+    { "type": "E", "kVA": [3250, 4000], "source": "PC" },
+    { "type": "B (combined delivery + transformer)", "kVA": [500, 800, 1000, 1600, 2000, 2500, 2750, 3150, 3250, 3500, 4000], "source": "PC" }
+  ],
+  "fence": { "height": 2.00, "unit": "m", "mesh": "welded mesh 100/50, galvanized steel posts", "colour": "light grey (galvanized)", "source": "PC" },
+  "gates": [
+    { "id": "GATE-6", "width": 6.00, "type": "double swing, vertical bars", "source": "PC", "note": "to be defined per project" },
+    { "id": "GATE-7", "width": 7.00, "type": "double swing, vertical bars", "source": "PC", "note": "to be defined per project" }
+  ],
+  "fireTanks": [
+    { "id": "TANK-60-H", "volume": 60, "shape": "horizontal cylinder", "diameter": 3.00, "length": 9.03, "source": "PC" },
+    { "id": "TANK-120-H", "volume": 120, "shape": "horizontal cylinder", "diameter": 3.00, "length": 17.67, "source": "PC" },
+    { "id": "TANK-60-V", "volume": 60, "shape": "vertical cylinder", "diameter": 7.02, "height": 1.78, "source": "PC" },
+    { "id": "TANK-120-V", "volume": 120, "shape": "vertical cylinder", "diameter": 7.02, "height": 3.57, "source": "PC" }
+  ]
+}

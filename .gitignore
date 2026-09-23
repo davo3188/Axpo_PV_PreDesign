@@ -1,0 +1,13 @@
+# local / generated
+backups/
+*.axpo
+*.pvd
+*.tif
+*.tiff
+*.dwg
+*.bak
+.DS_Store
+Thumbs.db
+
+# synthetic test fixtures are fine to keep
+!tests/fixtures/*.axpo

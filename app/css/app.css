@@ -1,0 +1,118 @@
+/* PV Predesign — same visual language as the Geoportale AxpoSolar Italia (Axpo gradient, light/dark tokens) */
+:root {
+  --axpo-water-a: #3945CF; --axpo-water-b: #0CE6CD;
+  --axpo-gradient: linear-gradient(90deg, var(--axpo-water-a), var(--axpo-water-b));
+  --accent: #1F99CC; --accent-strong: #3945CF; --on-accent: #fff;
+  --ok: #2DBE7E; --warn: #D99A00; --err: #E5484D;
+  --bg: #F4F6F8; --panel: #FFFFFF; --line: #E1E6EB; --txt: #0F1720; --mut: #5B6B7B; --hover: #EDF2F6;
+  --field: #FFFFFF;
+  --site: #FF8C1A; --excl: #E5484D; --ref: #7B8A99; --area: #2DBE7E; --table: #3945CF;
+  --font: 'Open Sans', 'Segoe UI', Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B1219; --panel: #18232E; --line: #334250; --txt: #F2F7FB; --mut: #99AFC2; --accent: #4EBEEF;
+    --hover: #22303D; --field: #121B24; --warn: #FFC845; --table: #6F7BFF; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B1219; --panel: #18232E; --line: #334250; --txt: #F2F7FB; --mut: #99AFC2; --accent: #4EBEEF;
+  --hover: #22303D; --field: #121B24; --warn: #FFC845; --table: #6F7BFF; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { font: 13px/1.45 var(--font); background: var(--bg); color: var(--txt); display: flex; flex-direction: column; }
+button, input, select { font: inherit; color: inherit; }
+
+/* top bar */
+#top { position: relative; display: flex; align-items: center; gap: 12px; padding: 8px 14px; background: var(--panel); border-bottom: 1px solid var(--line); flex: none; }
+#top::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--axpo-gradient); }
+#top .brand { font-weight: 700; font-size: 15px; white-space: nowrap; }
+#top .brand small { font-weight: 400; color: var(--mut); margin-left: 6px; }
+#projName { flex: 1; min-width: 80px; max-width: 360px; border: 1px solid transparent; background: transparent; border-radius: 6px; padding: 4px 8px; font-weight: 600; }
+#projName:hover, #projName:focus { border-color: var(--line); background: var(--field); outline: none; }
+#top .actions { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+.tb { background: transparent; border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; cursor: pointer; white-space: nowrap; }
+.tb:hover { background: var(--hover); }
+
+/* layout */
+#body { flex: 1; display: flex; min-height: 0; }
+#side { width: 360px; flex: none; overflow-y: auto; background: var(--panel); border-right: 1px solid var(--line); padding: 12px; }
+#view { flex: 1; min-width: 0; position: relative; }
+@media (max-width: 760px) {
+  #body { flex-direction: column-reverse; }
+  #side { width: auto; max-height: 55vh; border-right: 0; border-top: 1px solid var(--line); }
+  #view { min-height: 45vh; }
+  #top .brand small { display: none; }
+}
+
+/* collapsible sections (as in the Geoportale) */
+.sec { border: 1px solid var(--line); border-radius: 10px; margin: 0 0 10px; background: var(--panel); }
+.sec > summary { list-style: none; display: flex; align-items: center; gap: 10px; padding: 9px 10px; cursor: pointer; border-radius: 9px; user-select: none; }
+.sec > summary::-webkit-details-marker { display: none; }
+.sec > summary:hover { background: var(--hover); }
+.sec > summary::after { content: ''; flex: none; width: 6px; height: 6px; margin: 0 4px 2px 2px; border-right: 2px solid var(--mut); border-bottom: 2px solid var(--mut); transform: rotate(45deg); transition: transform .15s; }
+.sec[open] > summary::after { transform: rotate(-135deg); margin-bottom: -3px; }
+.sec .ico { flex: none; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 7px; background: var(--hover); font-size: 15px; }
+.sec .ttl { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; line-height: 1.25; }
+.sec .ttl b { font-size: 13px; font-weight: 600; }
+.sec .ttl small { font-size: 11px; color: var(--mut); }
+.sec .cnt { flex: none; font-size: 10.5px; font-weight: 700; padding: 1px 7px; border-radius: 9px; color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); }
+.sec .cnt:empty { display: none; }
+.sec .bd { padding: 2px 10px 12px; }
+
+/* form bits */
+label.l { display: block; font-size: 11px; color: var(--mut); text-transform: uppercase; letter-spacing: .4px; margin: 10px 0 4px; font-weight: 600; }
+label.l .opt { text-transform: none; letter-spacing: 0; font-weight: 400; }
+input[type=text], input[type=number], select { width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--field); }
+input:focus, select:focus { outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent); outline-offset: -1px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; }
+.btn:hover { background: var(--hover); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+.btn.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btns { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.btns .btn { flex: 1; }
+.hint { font-size: 11.5px; color: var(--mut); margin-top: 6px; line-height: 1.35; }
+.hint b { color: var(--txt); }
+.chk { display: flex; align-items: center; gap: 7px; margin-top: 8px; font-size: 12.5px; }
+.chk input { width: auto; margin: 0; }
+.inline { display: flex; gap: 6px; align-items: center; }
+.inline input { flex: 1; }
+.linkbtn { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; font-size: 11.5px; text-decoration: underline; }
+
+/* lists */
+.list { margin-top: 8px; border: 1px solid var(--line); border-radius: 8px; max-height: 220px; overflow-y: auto; }
+.list:empty::before { content: attr(data-empty); display: block; padding: 10px; color: var(--mut); font-size: 12px; }
+.it { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.it:last-child { border-bottom: 0; }
+.it .sw { flex: none; width: 10px; height: 10px; border-radius: 3px; }
+.it .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.it .nm small { display: block; color: var(--mut); font-size: 11px; }
+.it select { width: auto; padding: 2px 4px; font-size: 12px; }
+.it .x { flex: none; background: none; border: 0; cursor: pointer; color: var(--mut); font-size: 15px; line-height: 1; padding: 2px 4px; border-radius: 4px; }
+.it .x:hover { color: var(--err); background: var(--hover); }
+
+/* results */
+.kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.kpi { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+.kpi .v { font-size: 17px; font-weight: 700; }
+.kpi .k { font-size: 11px; color: var(--mut); }
+.kpi.big { grid-column: 1 / -1; background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.warns { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.warn { font-size: 12px; padding: 7px 9px; border-radius: 6px; border-left: 3px solid var(--warn); background: color-mix(in srgb, var(--warn) 12%, transparent); }
+.warn.err { border-left-color: var(--err); background: color-mix(in srgb, var(--err) 10%, transparent); }
+
+/* toast */
+#toast { position: fixed; right: 16px; bottom: 16px; max-width: 380px; display: flex; flex-direction: column; gap: 8px; z-index: 50; }
+.toast { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--mut); border-radius: 8px; padding: 9px 12px; box-shadow: 0 6px 18px rgba(0,0,0,.2); font-size: 12.5px; }
+.toast.ok { border-left-color: var(--ok); } .toast.err { border-left-color: var(--err); }
+
+/* map banner for active modes */
+#banner { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; box-shadow: 0 4px 14px rgba(0,0,0,.2); z-index: 5; font-size: 12.5px; }
+#banner[hidden] { display: none; }
+kbd { font: 11px/1 var(--font); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; background: var(--hover); }

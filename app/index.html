@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PV Predesign</title>
+<link rel="stylesheet" id="esriTheme" href="https://js.arcgis.com/4.34/esri/themes/light/main.css">
+<script src="https://js.arcgis.com/4.34/"></script>
+<link rel="stylesheet" href="./css/app.css">
+</head>
+<body>
+<header id="top">
+  <div class="brand">PV Predesign<small data-i18n="app.subtitle"></small></div>
+  <input id="projName" type="text" data-i18n-aria="top.projName">
+  <div class="actions">
+    <button class="tb" id="btnImport" data-i18n="top.import" data-i18n-title="top.importTitle"></button>
+    <button class="tb" id="btnExport" data-i18n="top.export" data-i18n-title="top.exportTitle"></button>
+    <button class="tb" id="btnNew" data-i18n="top.new"></button>
+    <button class="tb" id="btnTheme" data-i18n-title="top.theme" data-i18n-aria="top.theme">☾</button>
+  </div>
+</header>
+
+<div id="body">
+  <aside id="side">
+
+    <details class="sec" id="secSite" open>
+      <summary><span class="ico" aria-hidden="true">📍</span><span class="ttl"><b data-i18n="site.title"></b><small data-i18n="site.sub"></small></span><span class="cnt" id="siteCnt"></span></summary>
+      <div class="bd">
+        <div class="btns">
+          <button class="btn" id="drawSite" data-i18n="site.drawSite"></button>
+          <button class="btn" id="drawExcl" data-i18n="site.drawExcl"></button>
+        </div>
+        <div class="list" id="featList" data-i18n-empty="site.empty"></div>
+        <div class="row2">
+          <div><label class="l" for="setback" data-i18n="site.setback"></label><input id="setback" type="number" min="0" step="0.5"></div>
+          <div><label class="l" for="exclBuffer" data-i18n="site.exclBuffer"></label><input id="exclBuffer" type="number" min="0" step="0.5"></div>
+        </div>
+        <div class="hint" data-i18n="site.hint"></div>
+      </div>
+    </details>
+
+    <details class="sec" id="secModules">
+      <summary><span class="ico" aria-hidden="true">▦</span><span class="ttl"><b data-i18n="mod.title"></b><small data-i18n="mod.sub"></small></span><span class="cnt" id="modCnt"></span></summary>
+      <div class="bd">
+        <div class="list" id="modList" data-i18n-empty="mod.empty"></div>
+        <div class="btns">
+          <button class="btn" id="modAddBtn" data-i18n="mod.add"></button>
+          <button class="btn" id="modImportBtn" data-i18n="mod.import" data-i18n-title="mod.importTitle"></button>
+        </div>
+        <form id="modForm" hidden>
+          <div class="row2">
+            <div><label class="l" for="mfMan" data-i18n="mod.manufacturer"></label><input id="mfMan" type="text"></div>
+            <div><label class="l" for="mfModel" data-i18n="mod.model"></label><input id="mfModel" type="text"></div>
+          </div>
+          <div class="row3">
+            <div><label class="l" for="mfWp" data-i18n="mod.wp"></label><input id="mfWp" type="number" min="1" step="1"></div>
+            <div><label class="l" for="mfLen" data-i18n="mod.length"></label><input id="mfLen" type="number" min="0" step="any"></div>
+            <div><label class="l" for="mfWid" data-i18n="mod.width"></label><input id="mfWid" type="number" min="0" step="any"></div>
+          </div>
+          <label class="chk"><input type="checkbox" id="mfBif"> <span data-i18n="mod.bifacial"></span></label>
+          <div class="hint" data-i18n="mod.dimsHint"></div>
+          <div class="btns">
+            <button type="submit" class="btn primary" data-i18n="mod.save"></button>
+            <button type="button" class="btn" id="mfCancel" data-i18n="mod.cancel"></button>
+          </div>
+        </form>
+        <div class="hint" id="modHint" data-i18n="mod.hint"></div>
+      </div>
+    </details>
+
+    <details class="sec" id="secField" open>
+      <summary><span class="ico" aria-hidden="true">☀</span><span class="ttl"><b data-i18n="field.title"></b><small data-i18n="field.sub"></small></span></summary>
+      <div class="bd">
+        <label class="l" for="fTech" data-i18n="field.tech"></label>
+        <select id="fTech">
+          <option value="ground-fixed" data-i18n="tech.ground-fixed"></option>
+          <option value="agri-fixed" data-i18n="tech.agri-fixed"></option>
+          <option value="agri-tracker" data-i18n="tech.agri-tracker"></option>
+        </select>
+        <label class="l" for="fStruct" data-i18n="field.structure"></label>
+        <input id="fStruct" type="text" list="structPresets" autocomplete="off">
+        <datalist id="structPresets"></datalist>
+        <div class="hint" id="fStructHint"></div>
+        <label class="l" for="fModule" data-i18n="field.module"></label>
+        <select id="fModule"></select>
+        <div class="row2">
+          <div id="fTiltBox"><label class="l" for="fTilt" data-i18n="field.tilt"></label><input id="fTilt" type="number" min="0" max="60" step="0.5"></div>
+          <div><label class="l" for="fAz" data-i18n="field.azimuth"></label><input id="fAz" type="number" min="0" max="360" step="1"></div>
+        </div>
+        <div class="hint" data-i18n="field.azimuthHint"></div>
+        <label class="l" for="fPitch" data-i18n="field.pitch"></label>
+        <input id="fPitch" type="number" min="0.5" step="0.01">
+        <div class="hint" id="fPitchHint"></div>
+        <div class="row2">
+          <div><label class="l" for="fTableGap" data-i18n="field.tableGap"></label><input id="fTableGap" type="number" min="0" step="0.01"></div>
+          <div><label class="l" for="fModGap" data-i18n="field.moduleGap"></label><input id="fModGap" type="number" min="0" step="0.005"></div>
+        </div>
+        <label class="chk"><input type="checkbox" id="fTracks"> <span data-i18n="field.tracks"></span></label>
+        <div class="row2">
+          <div><label class="l" for="fTrackEvery" data-i18n="field.tracksEvery"></label><input id="fTrackEvery" type="number" min="10" step="1"></div>
+          <div><label class="l" for="fTrackWidth" data-i18n="field.tracksWidth"></label><input id="fTrackWidth" type="number" min="0" step="0.5"></div>
+        </div>
+        <label class="l" for="fTarget"><span data-i18n="field.target"></span> <span class="opt" data-i18n="field.optional"></span></label>
+        <input id="fTarget" type="number" min="0" step="0.1">
+        <label class="l" data-i18n="field.position"></label>
+        <div class="row2">
+          <div><label class="l" for="fRowOff" data-i18n="field.rowOffset"></label><input id="fRowOff" type="number" min="0" step="0.1"></div>
+          <div><label class="l" for="fColOff" data-i18n="field.colOffset"></label><input id="fColOff" type="number" min="0" step="0.1"></div>
+        </div>
+        <div class="btns"><button class="btn" id="fOptimise" data-i18n="field.optimise"></button></div>
+        <div class="hint" id="fOptHint"></div>
+      </div>
+    </details>
+
+    <details class="sec" id="secResults" open>
+      <summary><span class="ico" aria-hidden="true">📊</span><span class="ttl"><b data-i18n="res.title"></b><small data-i18n="res.sub"></small></span></summary>
+      <div class="bd">
+        <div class="kpis" id="kpis"></div>
+        <label class="l" for="specYield" data-i18n="res.specYield"></label>
+        <input id="specYield" type="number" min="0" step="1">
+        <div class="hint" data-i18n="res.specYieldHint"></div>
+        <div class="warns" id="warns"></div>
+      </div>
+    </details>
+
+  </aside>
+  <div id="view"><div id="banner" hidden></div></div>
+</div>
+
+<div id="toast" aria-live="polite"></div>
+<input type="file" id="fileImport" accept=".axpo,.geojson,.json" multiple hidden>
+<input type="file" id="fileRoadmap" accept=".xlsx,.xls,.csv" hidden>
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>
