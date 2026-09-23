@@ -1,14 +1,13 @@
 // Field: parameters, parametric generation (area -> rows of tables), map rendering, results and warnings.
 import { getSdk } from './sdk.js';
 import { store, change, on, saveSoon } from './state.js';
-import { t, fmt } from './i18n.js';
+import { t, tn, fmt } from './i18n.js';
 import { parseNotation, tableGeometry, minPitch, shadingAngleDeg, gcr } from './layout/structures.js';
 import { fillRows, tablesPerBlock } from './layout/rows.js';
 import { structurePresets, presetFor, def, rule } from './catalog.js';
 import { library, moduleById, moduleLabel } from './modules.js';
-import { siteFrame, computeArea } from './site.js';
+import { siteFrame, computeArea } from './areas.js';
 import { ringsOf } from './geo/localframe.js';
-import { toGeoJSON } from './geo/convert.js';
 import { toast } from './ui/toast.js';
 
 const TECH_DEFAULTS = {
@@ -125,7 +124,7 @@ function setup() {
   if (!frame) return { warns: [t('warn.noSite')] };
   const area = computeArea(frame);
   if (area.error) return { warns: [t('warn.noSite')] };
-  if (area.ignored) warns.push(t('warn.lineNoBuffer', { n: area.ignored }));
+  if (area.ignored) warns.push(tn('warn.lineNoBuffer', area.ignored));
   const mod = moduleById(f.moduleId);
   const s = parseNotation(f.structure);
   if (!mod) warns.push(t('warn.noModule'));
@@ -257,30 +256,6 @@ function optimise() {
   change('field', p => { p.field.rowOffset = best.row; p.field.columnOffset = best.col; });
   const gain = best.n - base;
   $('fOptHint').textContent = t('field.optimised', { tables: fmt(best.n), gain: gain > 0 ? `+${gain}` : '±0' });
-}
-
-// ── export ──
-export function exportGeoJSON() {
-  const { Polygon, SpatialReference, projectOperator } = getSdk();
-  const r = last.result;
-  const feats = [];
-  for (const f of store.project.features) feats.push({ type: 'Feature', geometry: f.geometry, properties: { name: f.name, role: f.role, category: f.category || '' } });
-  if (r && r.area && r.area.buildable) feats.push({ type: 'Feature', geometry: toGeoJSON(r.area.buildable), properties: { name: 'Buildable area', role: 'buildable', area_m2: Math.round(r.buildableArea) } });
-  if (r && r.tablesLocal.length) {
-    const polys = r.tablesLocal.map(tb => new Polygon({ rings: [[tb.corners[0], tb.corners[3], tb.corners[2], tb.corners[1], tb.corners[0]]], spatialReference: r.frame.sr }));
-    const wgs = projectOperator.executeMany(polys, SpatialReference.WGS84);
-    const f = store.project.field;
-    wgs.forEach((g, i) => feats.push({ type: 'Feature', geometry: toGeoJSON(g), properties: {
-      role: 'table', row: r.tablesLocal[i].row, col: r.tablesLocal[i].col, structure: f.structure, modules: r.geom.modules,
-      module: moduleLabel(r.module), wp: r.module.wp, tilt_deg: f.technology === 'agri-tracker' ? 0 : f.tiltDeg, azimuth_deg: f.azimuthDeg } }));
-  }
-  if (!feats.length) { toast(t('toast.nothingToExport'), 'err'); return; }
-  const name = (store.project.name || 'pv-predesign').replace(/[\\/:*?"<>|]+/g, '_') + '.geojson';
-  const blob = new Blob([JSON.stringify({ type: 'FeatureCollection', features: feats })], { type: 'application/geo+json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob); a.download = name; a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-  toast(t('toast.exported', { n: fmt(r ? r.tables : 0), file: name }), 'ok');
 }
 
 function escapeHtml(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }

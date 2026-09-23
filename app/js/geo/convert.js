@@ -5,10 +5,10 @@ export function isPolygonal(g) { return !!g && (g.type === 'Polygon' || g.type =
 export function isLinear(g) { return !!g && (g.type === 'LineString' || g.type === 'MultiLineString'); }
 export function isPuntual(g) { return !!g && (g.type === 'Point' || g.type === 'MultiPoint'); }
 
-// GeoJSON geometry -> SDK geometry in WGS84 (null for unsupported types)
-export function toSdk(g) {
+// GeoJSON-shaped geometry -> SDK geometry (WGS84 unless another spatial reference is given; null if unsupported)
+export function toSdk(g, spatialReference) {
   const { Polygon, Polyline, Point, SpatialReference } = getSdk();
-  const sr = SpatialReference.WGS84;
+  const sr = spatialReference || SpatialReference.WGS84;
   if (!g) return null;
   const xy = c => [c[0], c[1]];
   switch (g.type) {
@@ -20,6 +20,29 @@ export function toSdk(g) {
     case 'MultiPoint': return g.coordinates.length ? new Point({ x: g.coordinates[0][0], y: g.coordinates[0][1], spatialReference: sr }) : null;
     default: return null;
   }
+}
+
+// GeoJSON-shaped geometry in another system -> GeoJSON geometry in WGS84. sr: an EPSG code, or { wkid } or
+// { wkt }. The projection engine applies the default datum transformation (e.g. Monte Mario -> WGS 84).
+export function reprojectToWgs84(g, sr) {
+  const { SpatialReference } = getSdk();
+  const src = toSdk(g, new SpatialReference(typeof sr === 'number' ? { wkid: sr } : sr));
+  return src ? toGeoJSON(src) : null;
+}
+
+// Name of a WKT coordinate system ("RGF_1993_Lambert_93"), for messages
+export function wktName(wkt) {
+  const m = /^\s*(?:PROJCS|GEOGCS|PROJCRS|GEOGCRS|GEODCRS)\s*\[\s*"([^"]+)"/i.exec(wkt || '');
+  return m ? m[1].replace(/_/g, ' ') : 'WKT';
+}
+
+// One point from EPSG:wkid to [lon, lat] (null if the system is unknown to the projection engine)
+export function projectPointToWgs84(wkid, [x, y]) {
+  const { Point, SpatialReference, projectOperator } = getSdk();
+  try {
+    const p = projectOperator.execute(new Point({ x, y, spatialReference: new SpatialReference({ wkid }) }), SpatialReference.WGS84);
+    return p && isFinite(p.x) ? [p.x, p.y] : null;
+  } catch { return null; }
 }
 
 // SDK geometry (any SR) -> GeoJSON geometry in WGS84

@@ -1,0 +1,44 @@
+{
+ "type": "FeatureCollection",
+ "crs": {
+  "type": "name",
+  "properties": {
+   "name": "urn:ogc:def:crs:EPSG::2056"
+  }
+ },
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Gross area Bern test"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       2600000.0,
+       1200000.0
+      ],
+      [
+       2600000.0,
+       1200200.0
+      ],
+      [
+       2600300.0,
+       1200200.0
+      ],
+      [
+       2600300.0,
+       1200000.0
+      ],
+      [
+       2600000.0,
+       1200000.0
+      ]
+     ]
+    ]
+   }
+  }
+ ]
+}

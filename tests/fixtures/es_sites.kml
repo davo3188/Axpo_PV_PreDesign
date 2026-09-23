@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>Toledo test</name>
+<Folder><name>Superficie bruta</name>
+  <Placemark><name>Parcela 1</name><Polygon><outerBoundaryIs><LinearRing><coordinates>-4.010000,39.860000,0 -4.010000,39.864000,0 -4.004000,39.864000,0 -4.004000,39.860000,0 -4.010000,39.860000,0</coordinates></LinearRing></outerBoundaryIs></Polygon></Placemark>
+</Folder>
+<Folder><name>Restricciones</name>
+  <Folder><name>Zona inundable</name>
+    <Placemark><name>Arroyo zona</name><Polygon><outerBoundaryIs><LinearRing><coordinates>-4.008000,39.861000,0 -4.008000,39.862000,0 -4.006800,39.862000,0 -4.006800,39.861000,0 -4.008000,39.861000,0</coordinates></LinearRing></outerBoundaryIs></Polygon></Placemark>
+  </Folder>
+</Folder>
+<Folder><name>Lineas electricas</name>
+  <Placemark><name>Línea MT 20 kV</name><LineString><coordinates>-4.011000,39.863000,0 -4.003000,39.862500,0</coordinates></LineString></Placemark>
+</Folder>
+<Folder><name>Árboles</name>
+  <Placemark><name>Encina 1</name><Point><coordinates>-4.0090,39.8635,0</coordinates></Point></Placemark>
+  <Placemark><name>Encina 2</name><Point><coordinates>-4.0050,39.8605,0</coordinates></Point></Placemark>
+</Folder>
+<Folder><name>Accesos</name>
+  <Placemark><name>Acceso principal</name><Point><coordinates>-4.0100,39.8620,0</coordinates></Point></Placemark>
+</Folder>
+</Document></kml>

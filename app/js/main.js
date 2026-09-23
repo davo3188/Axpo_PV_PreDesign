@@ -3,10 +3,13 @@ import { loadSdk } from './sdk.js';
 import { loadCatalog } from './catalog.js';
 import { applyI18n, t } from './i18n.js';
 import { store, change, replaceProject, defaultProject, on } from './state.js';
-import { initSite, addFeatures, zoomToFeatures } from './site.js';
+import { loadCountries } from './crs.js';
+import { initAreas, importFiles, pickFiles, zoomToFeatures } from './areas.js';
 import { initModulesUi, renderModules } from './modules.js';
-import { initField, exportGeoJSON } from './field.js';
-import { readAnyFile } from './io/importers.js';
+import { initField } from './field.js';
+import { initOutput } from './output.js';
+import { initRail, showStep } from './ui/rail.js';
+import { saveProject, openProjectPick, openProjectFile, forgetHandle, PROJECT_EXT } from './io/projectfile.js';
 import { toast } from './ui/toast.js';
 
 const $ = id => document.getElementById(id);
@@ -14,9 +17,11 @@ const $ = id => document.getElementById(id);
 async function start() {
   applyI18n();
   initTheme();
+  initRail();
   let sdk;
   try {
-    [sdk] = await Promise.all([loadSdk(), loadCatalog()]);
+    [sdk] = await Promise.all([loadSdk(), loadCatalog(),
+      loadCountries().catch(e => console.warn('[crs] country outlines not loaded: no automatic system', e))]);
   } catch (e) {
     console.error(e);
     toast(t('toast.sdkFail', { err: e.message || e }), 'err', 30000);
@@ -34,59 +39,54 @@ async function start() {
   window.__view = view;   // debug hook
   await view.when();
 
-  initSite(view);
+  initAreas(view);
   initModulesUi();
   initField(view);
+  initOutput();
   on('modules', renderModules);
   on('project', renderModules);
 
   // project name
   const pn = $('projName');
-  pn.value = store.project.name;
+  const showName = () => { pn.value = store.project.name; document.title = `${store.project.name} · PV Predesign`; };
+  showName();
   pn.onchange = () => change('name', p => { p.name = pn.value.trim() || 'Untitled project'; });
-  on('project', () => { pn.value = store.project.name; });
+  on('name', showName);
+  on('project', showName);
 
-  // import (.axpo, GeoJSON), export, new
-  const fileIn = $('fileImport');
-  $('btnImport').onclick = () => fileIn.click();
-  fileIn.onchange = async () => {
-    const files = [...(fileIn.files || [])]; fileIn.value = '';
-    for (const f of files) await importFile(f);
-    if (files.length) zoomToFeatures();
-  };
-  $('btnExport').onclick = exportGeoJSON;
+  // project file, import, coordinate system
+  const projIn = $('fileProject');
   $('btnNew').onclick = () => {
     if (store.project.features.length && !confirm(t('confirm.new'))) return;
+    forgetHandle();
     replaceProject(defaultProject());
+    showStep('areas');
   };
-  // drop files on the map
+  $('btnOpen').onclick = () => openProjectPick(projIn);
+  projIn.onchange = async () => { const f = projIn.files && projIn.files[0]; projIn.value = ''; if (f) await openProjectFile(f); };
+  $('btnSave').onclick = () => saveProject(false);
+  $('btnSaveAs').onclick = () => saveProject(true);
+  $('btnImport').onclick = () => { showStep('areas'); pickFiles(null); };
+  $('crsBadge').onclick = () => { showStep('output'); $('outCrs').focus(); };
+  document.addEventListener('keydown', e => {
+    if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+    const k = e.key.toLowerCase();
+    if (k === 's') { e.preventDefault(); saveProject(e.shiftKey); }
+    else if (k === 'o') { e.preventDefault(); openProjectPick(projIn); }
+  });
+
+  // files dropped on the map: a project file opens, anything else is imported and sorted into categories
   const vd = $('view');
-  vd.addEventListener('dragover', e => { e.preventDefault(); });
+  vd.addEventListener('dragover', e => { if ([...e.dataTransfer.types].includes('Files')) e.preventDefault(); });
   vd.addEventListener('drop', async e => {
     e.preventDefault();
     const files = [...(e.dataTransfer?.files || [])];
-    for (const f of files) await importFile(f);
-    if (files.length) zoomToFeatures();
+    const proj = files.find(f => f.name.toLowerCase().endsWith(PROJECT_EXT));
+    if (proj) { await openProjectFile(proj); return; }
+    if (files.length) { showStep('areas'); await importFiles(files); }
   });
 
   if (store.project.features.length) zoomToFeatures();
-}
-
-async function importFile(file) {
-  try {
-    const r = await readAnyFile(file);
-    addFeatures(r.features);
-    if (r.type === 'axpo') {
-      if (store.project.name === 'Untitled project' || !store.project.name) change('name', p => { p.name = r.name; });
-      const site = r.features.filter(f => f.role === 'site').length, excl = r.features.filter(f => f.role === 'exclusion').length;
-      toast(t('toast.axpo', { name: r.name, n: r.features.length, site, excl }), 'ok');
-    } else {
-      toast(t('toast.geojson', { n: r.features.length, file: file.name }), 'ok');
-    }
-  } catch (e) {
-    console.error(e);
-    toast(t('toast.importFail', { file: file.name, err: e.message || e }), 'err', 10000);
-  }
 }
 
 // light / dark (follows the system unless chosen), also switches the Esri widget theme

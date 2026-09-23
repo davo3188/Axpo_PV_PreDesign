@@ -1,0 +1,51 @@
+{
+ "fr_lambert93": {
+  "wkid": 2154,
+  "grossGeodesicM2": 100172.46,
+  "grossGridM2": 100000.0,
+  "exclusionGeodesicM2": 3606.209
+ },
+ "it_monte_mario": {
+  "wkid": 3003,
+  "firstVertex": [
+   1515000.0,
+   5070000.0
+  ],
+  "grossGeodesicM2": 60047.69
+ },
+ "it_utm32_noprj": {
+  "wkid": 6707,
+  "grossGeodesicM2": 60038.54
+ },
+ "ch_lv95": {
+  "wkid": 2056,
+  "grossGeodesicM2": 60000.0
+ },
+ "es_sites": {
+  "grossGeodesicM2": 228012.197,
+  "exclusionGeodesicM2": 11400.692,
+  "folders": {
+   "Parcela 1": "Superficie bruta",
+   "Arroyo zona": "Restricciones / Zona inundable"
+  }
+ },
+ "de_bayern": {
+  "wkid": 25832
+ },
+ "de_brandenburg": {
+  "wkid": 25833
+ },
+ "pl_obstacles": {
+  "n": 3,
+  "heights": [
+   12.5,
+   9,
+   14
+  ],
+  "types": [
+   "tree",
+   "tree",
+   "pole"
+  ]
+ }
+}

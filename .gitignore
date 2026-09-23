@@ -1,13 +1,28 @@
 # local / generated
 backups/
+.DS_Store
+Thumbs.db
+*.bak
+
+# real project data never goes into the repository: projects, imports, terrain, CAD
+*.pvpd
 *.axpo
-*.pvd
+*.kml
+*.kmz
+*.zip
+*.shp
+*.shx
+*.dbf
+*.prj
+*.cpg
+*.csv
+*.geojson
 *.tif
 *.tiff
 *.dwg
-*.bak
-.DS_Store
-Thumbs.db
+*.dxf
+*.xlsx
+*.xls
 
-# synthetic test fixtures are fine to keep
-!tests/fixtures/*.axpo
+# synthetic test fixtures are fine to keep (scripts/make_fixtures.py)
+!tests/fixtures/*

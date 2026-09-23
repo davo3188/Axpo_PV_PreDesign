@@ -1,17 +1,22 @@
 // Project state, autosave in this browser and a tiny publish/subscribe.
-// The project holds parameters and inputs only; the layout is always regenerated from them (parametric).
+// The project holds inputs and parameters only; the layout is always regenerated from them (parametric).
 
-const PROJECT_KEY = 'pvp.project.v1';
+// test pages set __PVP_TEST__ so that they never overwrite the project autosaved by the app (same origin)
+const PROJECT_KEY = globalThis.__PVP_TEST__ ? 'pvp.project.test' : 'pvp.project.v1';
 export const PROJECT_FORMAT = 'pv-predesign-project';
+export const PROJECT_VERSION = 2;
 
 export function defaultProject() {
   return {
     format: PROJECT_FORMAT,
-    version: 1,
+    version: PROJECT_VERSION,
     name: 'Untitled project',
-    frame: null,              // { lon0, lat0 }: centre of the local metric frame, fixed with the first site
-    features: [],             // { id, name, role: site|exclusion|reference, geometry: GeoJSON WGS84, source, category }
-    settings: { siteSetback: 0, exclusionBuffer: 0 },
+    // coordinate system for exports and for files without a declared system; chosen automatically from the
+    // site location (auto) unless the user picks one
+    crs: { wkid: null, auto: true, country: null },
+    // objects of the Areas step: { id, name, category, geometry (GeoJSON, WGS84), source, attrs: {...} }
+    features: [],
+    settings: { boundarySetback: 0 },
     plannedModules: [],       // ids from the module library
     field: {
       technology: 'ground-fixed',
@@ -36,19 +41,62 @@ export const store = { project: loadProject() };
 function loadProject() {
   try {
     const p = JSON.parse(localStorage.getItem(PROJECT_KEY) || 'null');
-    if (p && p.format === PROJECT_FORMAT) return withDefaults(p);
+    if (p && p.format === PROJECT_FORMAT) return upgrade(p);
   } catch (e) { console.warn('[state] autosave unreadable', e); }
   return defaultProject();
 }
 
-// fill fields added in later versions
-function withDefaults(p) {
+// Bring a stored project to the current version and fill fields added later.
+export function upgrade(p) {
   const d = defaultProject();
-  return {
+  const q = {
     ...d, ...p,
+    crs: { ...d.crs, ...(p.crs || {}) },
     settings: { ...d.settings, ...(p.settings || {}) },
     field: { ...d.field, ...(p.field || {}), tracks: { ...d.field.tracks, ...((p.field || {}).tracks || {}) } },
   };
+  if ((p.version || 1) < 2) {
+    // v1: role site|exclusion|reference and global buffers -> v2 categories with per-object attributes
+    const oldSetback = p.settings?.siteSetback || 0, oldBuffer = p.settings?.exclusionBuffer || 0;
+    q.settings = { boundarySetback: oldSetback };
+    q.features = (p.features || []).map(f => {
+      const kind = geomKind(f.geometry);
+      let category = 'reference';
+      const attrs = {};
+      if (f.role === 'site') category = /perimetro netto/i.test(f.category || '') ? 'net' : 'gross';
+      else if (f.role === 'exclusion') {
+        const lin = linearTypeFor(f.category || f.name || '');
+        if (kind === 'line' && lin) { category = 'linear'; attrs.type = lin; }
+        else category = 'exclusion';
+        if (oldBuffer > 0) attrs.buffer = oldBuffer;
+      }
+      return { id: f.id, name: f.name, category, geometry: f.geometry, source: f.source, attrs, sourceCategory: f.category || '' };
+    });
+  }
+  q.version = PROJECT_VERSION;
+  delete q.settings.siteSetback; delete q.settings.exclusionBuffer;
+  return q;
+}
+
+export function geomKind(g) {
+  if (!g) return null;
+  if (g.type === 'Polygon' || g.type === 'MultiPolygon') return 'polygon';
+  if (g.type === 'LineString' || g.type === 'MultiLineString') return 'line';
+  if (g.type === 'Point' || g.type === 'MultiPoint') return 'point';
+  return null;
+}
+
+// Linear infrastructure recognised from names and categories (IT, EN, FR, ES, DE, PL)
+export function linearTypeFor(text) {
+  const s = String(text || '').toLowerCase().replace(/_/g, ' ');
+  if (/cavidott|underground (cable|power)|câble enterré|cable enterrado|erdkabel|kabel ziemny/.test(s)) return 'underground-power';
+  if (/elettrodott|power ?line|overhead|ligne (électrique|electrique|haute)|l[ií]nea el[eé]ctrica|freileitung|stromleitung|linia (energ|wysok|elektro)|\b(linea|line|ligne|l[ií]nea|linia)\s*(mt|at|bt|hta|htb|ht|hv|mv|lv)\b|\b\d+\s*kv\b/.test(s)) return 'overhead-power';
+  if (/gasdott|\bgas\b|gazoduc|gasoducto|gasleitung|gazoci/.test(s)) return 'gas';
+  if (/acquedott|water ?(pipe|main)|canalisation d'eau|conducci[oó]n de agua|wasserleitung|wodoci/.test(s)) return 'water';
+  if (/idrograf|fosso|canal|ditch|stream|river|fossé|ruisseau|rivière|acequia|arroyo|graben|\bbach|rów|rzek/.test(s)) return 'ditch';
+  if (/ferrovi|railway|\brail|chemin de fer|ferrocarril|eisenbahn|bahnstrecke|kolej/.test(s)) return 'railway';
+  if (/viabilit|strada|autostrad|road|route|chemin|carretera|camino|autopista|straße|strasse|autobahn|weg\b|droga/.test(s)) return 'road';
+  return null;
 }
 
 let saveTimer = 0;
@@ -61,7 +109,7 @@ export function saveSoon() {
 }
 
 export function replaceProject(p) {
-  store.project = withDefaults(p);
+  store.project = upgrade(p);
   saveSoon();
   emit('project');
 }

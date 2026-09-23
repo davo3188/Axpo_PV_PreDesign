@@ -11,124 +11,244 @@
 <body>
 <header id="top">
   <div class="brand">PV Predesign<small data-i18n="app.subtitle"></small></div>
-  <input id="projName" type="text" data-i18n-aria="top.projName">
+  <input id="projName" type="text" data-i18n-aria="top.projName" data-i18n-title="top.projName">
   <div class="actions">
+    <div class="grp">
+      <button class="tb" id="btnNew" data-i18n="top.new" data-i18n-title="top.newTitle"></button>
+      <button class="tb" id="btnOpen" data-i18n="top.open" data-i18n-title="top.openTitle"></button>
+      <button class="tb" id="btnSave" data-i18n="top.save" data-i18n-title="top.saveTitle"></button>
+      <button class="tb" id="btnSaveAs" data-i18n="top.saveAs" data-i18n-title="top.saveAsTitle"></button>
+    </div>
     <button class="tb" id="btnImport" data-i18n="top.import" data-i18n-title="top.importTitle"></button>
-    <button class="tb" id="btnExport" data-i18n="top.export" data-i18n-title="top.exportTitle"></button>
-    <button class="tb" id="btnNew" data-i18n="top.new"></button>
+    <button class="tb crs" id="crsBadge" data-i18n-title="top.crsTitle"></button>
     <button class="tb" id="btnTheme" data-i18n-title="top.theme" data-i18n-aria="top.theme">☾</button>
   </div>
 </header>
 
 <div id="body">
+  <nav id="rail" data-i18n-aria="rail.label">
+    <button type="button" data-step="terrain"><span class="n">0</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 19l6.5-10 4 6 2.5-3.5L22 19z"/><path d="M6 13.5c2-.8 3.5-.8 5 0"/></svg>
+      <span class="lb" data-i18n="step.terrain"></span></button>
+    <button type="button" data-step="areas"><span class="n">1</span><span class="badge" id="railAreas"></span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7l8-4 8 5-2.5 11L6 20z"/><path d="M10 10l4 1-1 4-3.5-1z"/></svg>
+      <span class="lb" data-i18n="step.areas"></span></button>
+    <button type="button" data-step="fields"><span class="n">2</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14l-2 4H3z"/><path d="M5 10h14l-2 4H3z"/><path d="M5 16h14l-2 4H3z"/></svg>
+      <span class="lb" data-i18n="step.fields"></span></button>
+    <button type="button" data-step="infra"><span class="n">3</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21L9.5 3M19 21L14.5 3"/><path d="M12 6v2M12 11v2.5M12 17v3"/></svg>
+      <span class="lb" data-i18n="step.infra.short"></span></button>
+    <button type="button" data-step="output"><span class="n">4</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M12 10v7M9 14l3 3 3-3"/></svg>
+      <span class="lb" data-i18n="step.output"></span></button>
+    <button type="button" data-step="3d"><span class="n">4b</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg>
+      <span class="lb" data-i18n="step.3d"></span></button>
+    <div class="sp"></div>
+    <button type="button" data-step="electrical" class="later">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L5 13.5h6L10 22l8.5-12H12.5z"/></svg>
+      <span class="lb" data-i18n="step.electrical"></span></button>
+  </nav>
+
   <aside id="side">
 
-    <details class="sec" id="secSite" open>
-      <summary><span class="ico" aria-hidden="true">📍</span><span class="ttl"><b data-i18n="site.title"></b><small data-i18n="site.sub"></small></span><span class="cnt" id="siteCnt"></span></summary>
-      <div class="bd">
-        <div class="btns">
-          <button class="btn" id="drawSite" data-i18n="site.drawSite"></button>
-          <button class="btn" id="drawExcl" data-i18n="site.drawExcl"></button>
-        </div>
-        <div class="list" id="featList" data-i18n-empty="site.empty"></div>
-        <div class="row2">
-          <div><label class="l" for="setback" data-i18n="site.setback"></label><input id="setback" type="number" min="0" step="0.5"></div>
-          <div><label class="l" for="exclBuffer" data-i18n="site.exclBuffer"></label><input id="exclBuffer" type="number" min="0" step="0.5"></div>
-        </div>
-        <div class="hint" data-i18n="site.hint"></div>
+    <!-- 0 · Terrain -->
+    <section class="step" data-step="terrain" hidden>
+      <header class="stephd"><span class="num">0</span><div><h2 data-i18n="step.terrain"></h2><p data-i18n="step.terrain.sub"></p></div></header>
+      <div class="card">
+        <div class="cardhd"><b data-i18n="terrain.esri"></b><span class="pill ok" data-i18n="terrain.default"></span></div>
+        <p class="hint" data-i18n="terrain.esriHint"></p>
       </div>
-    </details>
+      <div class="card soon">
+        <div class="cardhd"><b data-i18n="terrain.upload"></b><span class="pill" data-i18n="soon"></span></div>
+        <p class="hint" data-i18n="terrain.uploadHint"></p>
+      </div>
+      <div class="card soon">
+        <div class="cardhd"><b data-i18n="terrain.contours"></b><span class="pill" data-i18n="soon"></span></div>
+        <p class="hint" data-i18n="terrain.contoursHint"></p>
+      </div>
+      <div class="card soon">
+        <div class="cardhd"><b data-i18n="terrain.slope"></b><span class="pill" data-i18n="soon"></span></div>
+        <p class="hint" data-i18n="terrain.slopeHint"></p>
+      </div>
+    </section>
 
-    <details class="sec" id="secModules">
-      <summary><span class="ico" aria-hidden="true">▦</span><span class="ttl"><b data-i18n="mod.title"></b><small data-i18n="mod.sub"></small></span><span class="cnt" id="modCnt"></span></summary>
-      <div class="bd">
-        <div class="list" id="modList" data-i18n-empty="mod.empty"></div>
-        <div class="btns">
-          <button class="btn" id="modAddBtn" data-i18n="mod.add"></button>
-          <button class="btn" id="modImportBtn" data-i18n="mod.import" data-i18n-title="mod.importTitle"></button>
-        </div>
-        <form id="modForm" hidden>
-          <div class="row2">
-            <div><label class="l" for="mfMan" data-i18n="mod.manufacturer"></label><input id="mfMan" type="text"></div>
-            <div><label class="l" for="mfModel" data-i18n="mod.model"></label><input id="mfModel" type="text"></div>
-          </div>
-          <div class="row3">
-            <div><label class="l" for="mfWp" data-i18n="mod.wp"></label><input id="mfWp" type="number" min="1" step="1"></div>
-            <div><label class="l" for="mfLen" data-i18n="mod.length"></label><input id="mfLen" type="number" min="0" step="any"></div>
-            <div><label class="l" for="mfWid" data-i18n="mod.width"></label><input id="mfWid" type="number" min="0" step="any"></div>
-          </div>
-          <label class="chk"><input type="checkbox" id="mfBif"> <span data-i18n="mod.bifacial"></span></label>
-          <div class="hint" data-i18n="mod.dimsHint"></div>
+    <!-- 1 · Areas -->
+    <section class="step" data-step="areas" hidden>
+      <header class="stephd"><span class="num">1</span><div><h2 data-i18n="step.areas"></h2><p data-i18n="step.areas.sub"></p></div></header>
+      <div class="btns"><button type="button" class="btn primary" id="areasImport" data-i18n="areas.import"></button></div>
+      <p class="hint" data-i18n="areas.importHint"></p>
+      <div id="areaCats"></div>
+      <div class="card">
+        <div class="cardhd"><b data-i18n="areas.netTitle"></b></div>
+        <label class="l" for="boundarySetback" data-i18n="areas.setback"></label>
+        <input id="boundarySetback" type="number" min="0" step="0.5">
+        <p class="hint" data-i18n="areas.setbackHint"></p>
+        <div id="areaSummary"></div>
+      </div>
+    </section>
+
+    <!-- 2 · Fields -->
+    <section class="step" data-step="fields" hidden>
+      <header class="stephd"><span class="num">2</span><div><h2 data-i18n="step.fields"></h2><p data-i18n="step.fields.sub"></p></div></header>
+
+      <details class="sec" id="secModules">
+        <summary><span class="ico" aria-hidden="true">▦</span><span class="ttl"><b data-i18n="mod.title"></b><small data-i18n="mod.sub"></small></span><span class="cnt" id="modCnt"></span></summary>
+        <div class="bd">
+          <div class="list" id="modList" data-i18n-empty="mod.empty"></div>
           <div class="btns">
-            <button type="submit" class="btn primary" data-i18n="mod.save"></button>
-            <button type="button" class="btn" id="mfCancel" data-i18n="mod.cancel"></button>
+            <button type="button" class="btn" id="modAddBtn" data-i18n="mod.add"></button>
+            <button type="button" class="btn" id="modImportBtn" data-i18n="mod.import" data-i18n-title="mod.importTitle"></button>
           </div>
-        </form>
-        <div class="hint" id="modHint" data-i18n="mod.hint"></div>
-      </div>
-    </details>
+          <form id="modForm" hidden>
+            <div class="row2">
+              <div><label class="l" for="mfMan" data-i18n="mod.manufacturer"></label><input id="mfMan" type="text"></div>
+              <div><label class="l" for="mfModel" data-i18n="mod.model"></label><input id="mfModel" type="text"></div>
+            </div>
+            <div class="row3">
+              <div><label class="l" for="mfWp" data-i18n="mod.wp"></label><input id="mfWp" type="number" min="1" step="1"></div>
+              <div><label class="l" for="mfLen" data-i18n="mod.length"></label><input id="mfLen" type="number" min="0" step="any"></div>
+              <div><label class="l" for="mfWid" data-i18n="mod.width"></label><input id="mfWid" type="number" min="0" step="any"></div>
+            </div>
+            <label class="chk"><input type="checkbox" id="mfBif"> <span data-i18n="mod.bifacial"></span></label>
+            <div class="hint" data-i18n="mod.dimsHint"></div>
+            <div class="btns">
+              <button type="submit" class="btn primary" data-i18n="mod.save"></button>
+              <button type="button" class="btn" id="mfCancel" data-i18n="mod.cancel"></button>
+            </div>
+          </form>
+          <div class="hint" id="modHint" data-i18n="mod.hint"></div>
+        </div>
+      </details>
 
-    <details class="sec" id="secField" open>
-      <summary><span class="ico" aria-hidden="true">☀</span><span class="ttl"><b data-i18n="field.title"></b><small data-i18n="field.sub"></small></span></summary>
-      <div class="bd">
-        <label class="l" for="fTech" data-i18n="field.tech"></label>
-        <select id="fTech">
-          <option value="ground-fixed" data-i18n="tech.ground-fixed"></option>
-          <option value="agri-fixed" data-i18n="tech.agri-fixed"></option>
-          <option value="agri-tracker" data-i18n="tech.agri-tracker"></option>
-        </select>
-        <label class="l" for="fStruct" data-i18n="field.structure"></label>
-        <input id="fStruct" type="text" list="structPresets" autocomplete="off">
-        <datalist id="structPresets"></datalist>
-        <div class="hint" id="fStructHint"></div>
-        <label class="l" for="fModule" data-i18n="field.module"></label>
-        <select id="fModule"></select>
-        <div class="row2">
-          <div id="fTiltBox"><label class="l" for="fTilt" data-i18n="field.tilt"></label><input id="fTilt" type="number" min="0" max="60" step="0.5"></div>
-          <div><label class="l" for="fAz" data-i18n="field.azimuth"></label><input id="fAz" type="number" min="0" max="360" step="1"></div>
+      <details class="sec" id="secField" open>
+        <summary><span class="ico" aria-hidden="true">☀</span><span class="ttl"><b data-i18n="field.title"></b><small data-i18n="field.sub"></small></span></summary>
+        <div class="bd">
+          <label class="l" for="fTech" data-i18n="field.tech"></label>
+          <select id="fTech">
+            <option value="ground-fixed" data-i18n="tech.ground-fixed"></option>
+            <option value="agri-fixed" data-i18n="tech.agri-fixed"></option>
+            <option value="agri-tracker" data-i18n="tech.agri-tracker"></option>
+          </select>
+          <label class="l" for="fStruct" data-i18n="field.structure"></label>
+          <input id="fStruct" type="text" list="structPresets" autocomplete="off">
+          <datalist id="structPresets"></datalist>
+          <div class="hint" id="fStructHint"></div>
+          <label class="l" for="fModule" data-i18n="field.module"></label>
+          <select id="fModule"></select>
+          <div class="row2">
+            <div id="fTiltBox"><label class="l" for="fTilt" data-i18n="field.tilt"></label><input id="fTilt" type="number" min="0" max="60" step="0.5"></div>
+            <div><label class="l" for="fAz" data-i18n="field.azimuth"></label><input id="fAz" type="number" min="0" max="360" step="1"></div>
+          </div>
+          <div class="hint" data-i18n="field.azimuthHint"></div>
+          <label class="l" for="fPitch" data-i18n="field.pitch"></label>
+          <input id="fPitch" type="number" min="0.5" step="0.01">
+          <div class="hint" id="fPitchHint"></div>
+          <div class="row2">
+            <div><label class="l" for="fTableGap" data-i18n="field.tableGap"></label><input id="fTableGap" type="number" min="0" step="0.01"></div>
+            <div><label class="l" for="fModGap" data-i18n="field.moduleGap"></label><input id="fModGap" type="number" min="0" step="0.005"></div>
+          </div>
+          <label class="chk"><input type="checkbox" id="fTracks"> <span data-i18n="field.tracks"></span></label>
+          <div class="row2">
+            <div><label class="l" for="fTrackEvery" data-i18n="field.tracksEvery"></label><input id="fTrackEvery" type="number" min="10" step="1"></div>
+            <div><label class="l" for="fTrackWidth" data-i18n="field.tracksWidth"></label><input id="fTrackWidth" type="number" min="0" step="0.5"></div>
+          </div>
+          <label class="l" for="fTarget"><span data-i18n="field.target"></span> <span class="opt" data-i18n="field.optional"></span></label>
+          <input id="fTarget" type="number" min="0" step="0.1">
+          <label class="l" data-i18n="field.position"></label>
+          <div class="row2">
+            <div><label class="l" for="fRowOff" data-i18n="field.rowOffset"></label><input id="fRowOff" type="number" min="0" step="0.1"></div>
+            <div><label class="l" for="fColOff" data-i18n="field.colOffset"></label><input id="fColOff" type="number" min="0" step="0.1"></div>
+          </div>
+          <div class="btns"><button type="button" class="btn" id="fOptimise" data-i18n="field.optimise"></button></div>
+          <div class="hint" id="fOptHint"></div>
         </div>
-        <div class="hint" data-i18n="field.azimuthHint"></div>
-        <label class="l" for="fPitch" data-i18n="field.pitch"></label>
-        <input id="fPitch" type="number" min="0.5" step="0.01">
-        <div class="hint" id="fPitchHint"></div>
-        <div class="row2">
-          <div><label class="l" for="fTableGap" data-i18n="field.tableGap"></label><input id="fTableGap" type="number" min="0" step="0.01"></div>
-          <div><label class="l" for="fModGap" data-i18n="field.moduleGap"></label><input id="fModGap" type="number" min="0" step="0.005"></div>
-        </div>
-        <label class="chk"><input type="checkbox" id="fTracks"> <span data-i18n="field.tracks"></span></label>
-        <div class="row2">
-          <div><label class="l" for="fTrackEvery" data-i18n="field.tracksEvery"></label><input id="fTrackEvery" type="number" min="10" step="1"></div>
-          <div><label class="l" for="fTrackWidth" data-i18n="field.tracksWidth"></label><input id="fTrackWidth" type="number" min="0" step="0.5"></div>
-        </div>
-        <label class="l" for="fTarget"><span data-i18n="field.target"></span> <span class="opt" data-i18n="field.optional"></span></label>
-        <input id="fTarget" type="number" min="0" step="0.1">
-        <label class="l" data-i18n="field.position"></label>
-        <div class="row2">
-          <div><label class="l" for="fRowOff" data-i18n="field.rowOffset"></label><input id="fRowOff" type="number" min="0" step="0.1"></div>
-          <div><label class="l" for="fColOff" data-i18n="field.colOffset"></label><input id="fColOff" type="number" min="0" step="0.1"></div>
-        </div>
-        <div class="btns"><button class="btn" id="fOptimise" data-i18n="field.optimise"></button></div>
-        <div class="hint" id="fOptHint"></div>
-      </div>
-    </details>
+      </details>
 
-    <details class="sec" id="secResults" open>
-      <summary><span class="ico" aria-hidden="true">📊</span><span class="ttl"><b data-i18n="res.title"></b><small data-i18n="res.sub"></small></span></summary>
-      <div class="bd">
-        <div class="kpis" id="kpis"></div>
-        <label class="l" for="specYield" data-i18n="res.specYield"></label>
-        <input id="specYield" type="number" min="0" step="1">
-        <div class="hint" data-i18n="res.specYieldHint"></div>
-        <div class="warns" id="warns"></div>
+      <details class="sec" id="secResults" open>
+        <summary><span class="ico" aria-hidden="true">📊</span><span class="ttl"><b data-i18n="res.title"></b><small data-i18n="res.sub"></small></span></summary>
+        <div class="bd">
+          <div class="kpis" id="kpis"></div>
+          <label class="l" for="specYield" data-i18n="res.specYield"></label>
+          <input id="specYield" type="number" min="0" step="1">
+          <div class="hint" data-i18n="res.specYieldHint"></div>
+          <div class="warns" id="warns"></div>
+        </div>
+      </details>
+    </section>
+
+    <!-- 3 · Infrastructure -->
+    <section class="step" data-step="infra" hidden>
+      <header class="stephd"><span class="num">3</span><div><h2 data-i18n="step.infra"></h2><p data-i18n="step.infra.sub"></p></div></header>
+      <div class="card soon">
+        <div class="cardhd"><b data-i18n="infra.fence"></b><span class="pill" data-i18n="soon"></span></div>
+        <p class="hint" data-i18n="infra.fenceHint"></p>
       </div>
-    </details>
+      <div class="card soon">
+        <div class="cardhd"><b data-i18n="infra.roads"></b><span class="pill" data-i18n="soon"></span></div>
+        <p class="hint" data-i18n="infra.roadsHint"></p>
+      </div>
+      <div class="card soon">
+        <div class="cardhd"><b data-i18n="infra.cabins"></b><span class="pill" data-i18n="soon"></span></div>
+        <p class="hint" data-i18n="infra.cabinsHint"></p>
+      </div>
+      <div class="card soon">
+        <div class="cardhd"><b data-i18n="infra.electrical"></b><span class="pill" data-i18n="later"></span></div>
+        <p class="hint" data-i18n="infra.electricalHint"></p>
+      </div>
+    </section>
+
+    <!-- 4 · Output -->
+    <section class="step" data-step="output" hidden>
+      <header class="stephd"><span class="num">4</span><div><h2 data-i18n="step.output"></h2><p data-i18n="step.output.sub"></p></div></header>
+      <div class="card">
+        <div class="cardhd"><b data-i18n="out.crsTitle"></b></div>
+        <select id="outCrs" data-i18n-aria="out.crsTitle"></select>
+        <div id="outCrsAlerts" class="warns"></div>
+        <p class="hint" data-i18n="out.crsInfo"></p>
+      </div>
+      <div class="card">
+        <div class="cardhd"><b data-i18n="out.exportTitle"></b></div>
+        <div class="btns col">
+          <button type="button" class="btn" id="outGeojson" data-i18n="out.geojson"></button>
+          <button type="button" class="btn" disabled data-i18n="out.kml"></button>
+          <button type="button" class="btn" disabled data-i18n="out.shp"></button>
+          <button type="button" class="btn" disabled data-i18n="out.dxf"></button>
+        </div>
+        <p class="hint" data-i18n="out.exportHint"></p>
+      </div>
+      <div class="card soon">
+        <div class="cardhd"><b data-i18n="out.report"></b><span class="pill" data-i18n="soon"></span></div>
+        <p class="hint" data-i18n="out.reportHint"></p>
+      </div>
+    </section>
+
+    <!-- 4b · 3D -->
+    <section class="step" data-step="3d" hidden>
+      <header class="stephd"><span class="num">4b</span><div><h2 data-i18n="step.3d"></h2><p data-i18n="step.3d.sub"></p></div></header>
+      <div class="card soon">
+        <div class="cardhd"><b data-i18n="d3.title"></b><span class="pill" data-i18n="soon"></span></div>
+        <p class="hint" data-i18n="d3.hint"></p>
+      </div>
+    </section>
+
+    <!-- Electrical: kept open -->
+    <section class="step" data-step="electrical" hidden>
+      <header class="stephd"><span class="num">⚡</span><div><h2 data-i18n="step.electrical"></h2><p data-i18n="step.electrical.sub"></p></div></header>
+      <div class="card soon">
+        <div class="cardhd"><b data-i18n="elec.title"></b><span class="pill" data-i18n="later"></span></div>
+        <p class="hint" data-i18n="elec.hint"></p>
+      </div>
+    </section>
 
   </aside>
   <div id="view"><div id="banner" hidden></div></div>
 </div>
 
 <div id="toast" aria-live="polite"></div>
-<input type="file" id="fileImport" accept=".axpo,.geojson,.json" multiple hidden>
+<input type="file" id="fileImport" accept=".axpo,.geojson,.json,.kml,.kmz,.zip,.csv,.txt,.dwg,.dxf" multiple hidden>
+<input type="file" id="fileProject" accept=".pvpd" hidden>
 <input type="file" id="fileRoadmap" accept=".xlsx,.xls,.csv" hidden>
 <script type="module" src="./js/main.js"></script>
 </body>
