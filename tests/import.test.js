@@ -242,6 +242,23 @@ await test('Geoportale project (.axpo)', async () => {
   return cats.join(' · ');
 });
 
+await test('Geoportale project with the site-features model: codes read, never guessed', async () => {
+  const r = await readAnyFile(await fixture('it_site_features.axpo'));
+  const got = Object.fromEntries(classified(r, r.features).map(f => [f.name, [f.category, f.attrs]]));
+  eq(got, expected.it_site_features.categories, 'categories and attributes');
+  eq(r.site && r.site.code, 'C0000', 'site of work');
+  return Object.entries(got).map(([n, [c]]) => `${n}: ${c}`).join(' · ');
+});
+await test('GeoJSON exported by the Geoportale: explicit category and attributes', async () => {
+  const fc = { type: 'FeatureCollection', features: [
+    { type: 'Feature', geometry: { type: 'LineString', coordinates: [[10, 45], [10.01, 45]] },
+      properties: { nome: 'Linea', tipo: 'disegno', categoria: 'Infrastruttura lineare · Elettrodotto aereo', category: 'linear', type: 'overhead-power', buffer: 5, voltage: 20 } },
+    { type: 'Feature', geometry: { type: 'Polygon', coordinates: [square(10, 45)] },
+      properties: { nome: 'Vincolo', category: 'exclusion', type: 'no-such-type', buffer: -2 } } ] };
+  const r = await readAnyFile(new File([JSON.stringify(fc)], 'geoportale.geojson'));
+  const got = classified(r, r.features).map(f => [f.name, f.category, f.attrs]);
+  eq(got, [['Linea', 'linear', { type: 'overhead-power', buffer: 5, voltage: 20 }], ['Vincolo', 'exclusion', {}]], 'explicit codes, bad values dropped');
+});
 await test('files dropped on a category: what fits goes there, the rest is sorted', async () => {
   useProject([]);
   const n = await importFiles([await fixture('es_sites.kml')], 'gross');

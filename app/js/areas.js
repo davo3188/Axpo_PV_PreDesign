@@ -4,7 +4,7 @@
 import { getSdk } from './sdk.js';
 import { store, change, on, emit, uid, saveSoon, geomKind } from './state.js';
 import { t, tn, fmt } from './i18n.js';
-import { CATEGORIES, CATEGORY, accepts, classify } from './categories.js';
+import { CATEGORIES, CATEGORY, POWER_TYPES, accepts, classify } from './categories.js';
 import { toSdk, toGeoJSON, reprojectToWgs84, projectPointToWgs84, wktName } from './geo/convert.js';
 import { makeLocalFrame } from './geo/localframe.js';
 import { readAnyFile } from './io/importers.js';
@@ -286,7 +286,8 @@ function onCatsChange(e) {
     if (!f) return;
     f.attrs = f.attrs || {};
     const v = el.type === 'number' ? (el.value === '' ? undefined : Math.max(0, Number(el.value))) : el.value;
-    if (v === undefined || (typeof v === 'number' && !isFinite(v))) delete f.attrs[attr]; else f.attrs[attr] = v;
+    if (v === undefined || v === '' || (typeof v === 'number' && !isFinite(v))) delete f.attrs[attr]; else f.attrs[attr] = v;
+    if (attr === 'type' && !POWER_TYPES.includes(f.attrs.type)) delete f.attrs.voltage;   // tension only for power lines
   });
 }
 function onRename(e) {
@@ -402,9 +403,13 @@ function row(f, c) {
   const a = f.attrs || {};
   const kind = geomKind(f.geometry);
   const inputs = [];
-  if (c.attrs.includes('type')) inputs.push(`<select data-id="${f.id}" data-attr="type" title="${esc(t('attr.type'))}" aria-label="${esc(t('attr.type'))}">${c.types.map(ty => `<option value="${ty}" ${a.type === ty ? 'selected' : ''}>${esc(t('type.' + ty))}</option>`).join('')}</select>`);
+  if (c.attrs.includes('type')) {
+    const none = c.types.includes(a.type) ? '' : `<option value="" selected>${esc(t('type.none'))}</option>`;
+    inputs.push(`<select data-id="${f.id}" data-attr="type" title="${esc(t('attr.type'))}" aria-label="${esc(t('attr.type'))}">${none}${c.types.map(ty => `<option value="${ty}" ${a.type === ty ? 'selected' : ''}>${esc(t('type.' + ty))}</option>`).join('')}</select>`);
+  }
   if (c.attrs.includes('height')) inputs.push(num(f, 'height', a.height, t('attr.height')));
   if (c.attrs.includes('buffer')) inputs.push(num(f, 'buffer', a.buffer, t('attr.buffer'), kind !== 'polygon' && !(a.buffer > 0)));
+  if (c.attrs.includes('voltage') && POWER_TYPES.includes(a.type)) inputs.push(num(f, 'voltage', a.voltage, t('attr.voltage')));
   if (c.attrs.includes('width') && kind === 'line') inputs.push(num(f, 'width', a.width, t('attr.width'), !(a.width > 0)));
   const moveOpts = CATEGORIES.filter(x => x.geom.includes(kind)).map(x => `<option value="${x.id}" ${x.id === f.category ? 'selected' : ''}>${esc(t('cat.' + x.id))}</option>`).join('');
   return `<div class="it" data-id="${f.id}">

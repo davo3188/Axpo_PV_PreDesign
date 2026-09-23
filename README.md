@@ -40,6 +40,11 @@ Ctrl+Shift+S, Ctrl+O), **Import**, and a badge with the coordinate system of the
   sorted automatically from folder, layer and object names in six languages (e.g. *Superficie bruta*,
   *Zona inundable*, *Ligne HTA 20 kV*, *Árboles*, *Accesos*); files dropped on a category go into it when their
   geometry fits. DWG / DXF import comes later.
+- **From the Geoportale** — categories, types and attributes use one shared model ("site-features", AGOL Axpo
+  `schemas/site_features_model.json`), also used by the AGOL layer *IT - Site Features*. Drawings saved with it
+  keep their category, type, buffer, height, width and voltage exactly; the site of work of an `.axpo` (an area of
+  AREAS COLLECTION) becomes the gross area; older drawings with the Sites Notes categories are mapped by a fixed
+  table (e.g. *DPA* → exclusion · DPA corridor), keywords only for anything else.
 - **Drawing** — polygon, line or points in any category (points are placed one after the other until Esc), reshape
   with the ✎ button, rename with a double click.
 - **Net area** — used as it is when given (e.g. *Perimetro Netto* from the Geoportale); otherwise computed as gross

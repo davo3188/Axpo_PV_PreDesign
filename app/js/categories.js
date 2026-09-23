@@ -1,21 +1,46 @@
 // Area categories of step 1 and the automatic classification of imported objects. Pure module (no SDK).
+// Categories, types and attributes follow the shared "site-features" model 1.0.0 (AGOL Axpo
+// schemas/site_features_model.json), also used by the Geoportale and by the AGOL layer «IT - Site Features»:
+// objects coming from there carry their codes and are never guessed.
 import { geomKind, linearTypeFor } from './state.js';
 
 // geom: geometry kinds accepted; cuts: removed from the buildable area; attrs: per-object attributes
 export const CATEGORIES = [
   { id: 'gross', colour: [255, 140, 26], geom: ['polygon'], cuts: false, attrs: [] },
   { id: 'net', colour: [45, 190, 126], geom: ['polygon'], cuts: false, attrs: [] },
-  { id: 'exclusion', colour: [229, 72, 77], geom: ['polygon', 'line', 'point'], cuts: true, attrs: ['buffer'] },
-  { id: 'linear', colour: [233, 30, 140], geom: ['line'], cuts: true, attrs: ['type', 'buffer'],
+  { id: 'exclusion', colour: [229, 72, 77], geom: ['polygon', 'line', 'point'], cuts: true, attrs: ['type', 'buffer'],
+    types: ['landscape', 'archaeological', 'cultural-heritage', 'protected-area', 'planning', 'sector-plan', 'flood',
+      'steep-slope', 'woodland', 'watercourse', 'dpa', 'setback', 'other'] },
+  { id: 'linear', colour: [233, 30, 140], geom: ['line'], cuts: true, attrs: ['type', 'buffer', 'voltage'],
     types: ['overhead-power', 'underground-power', 'gas', 'water', 'ditch', 'road', 'railway', 'other'] },
   { id: 'obstacle', colour: [150, 90, 40], geom: ['point', 'polygon', 'line'], cuts: true, attrs: ['type', 'height', 'buffer'],
     types: ['tree', 'pole', 'building', 'other'] },
   { id: 'access', colour: [31, 153, 204], geom: ['point', 'line'], cuts: false, attrs: ['type'],
     types: ['site-access', 'grid-connection'] },
-  { id: 'mitigation', colour: [110, 170, 60], geom: ['polygon', 'line'], cuts: true, attrs: ['width'] },
-  { id: 'agri', colour: [200, 170, 40], geom: ['polygon', 'line'], cuts: true, attrs: ['width'] },
-  { id: 'reference', colour: [123, 138, 153], geom: ['polygon', 'line', 'point'], cuts: false, attrs: [] },
+  { id: 'mitigation', colour: [110, 170, 60], geom: ['polygon', 'line'], cuts: true, attrs: ['type', 'width'],
+    types: ['hedge', 'green-screen', 'other'] },
+  { id: 'agri', colour: [200, 170, 40], geom: ['polygon', 'line'], cuts: true, attrs: ['type', 'width'],
+    types: ['crop', 'pasture', 'other'] },
+  { id: 'reference', colour: [123, 138, 153], geom: ['polygon', 'line', 'point'], cuts: false, attrs: ['type'],
+    types: ['note', 'photo', 'survey-route', 'measurement', 'other'] },
 ];
+// voltage only for power lines
+export const POWER_TYPES = ['overhead-power', 'underground-power'];
+
+// Old Geoportale / Site Notes categories → [category, type], by geometry (same table as the model)
+export const FROM_SITE_NOTES = {
+  point: { 'beni interesse culturale': ['exclusion', 'cultural-heritage'], 'costruzioni e antropizzazioni': ['obstacle', 'building'],
+    'rilievo fotografico': ['reference', 'photo'], 'alberi e vegetazione': ['obstacle', 'tree'], 'idrografia': ['exclusion', 'watercourse'] },
+  line: { 'elettrodotto': ['linear', 'overhead-power'], 'idrografia': ['linear', 'ditch'], 'acquedotto': ['linear', 'water'],
+    'gasdotti': ['linear', 'gas'], 'viabilita': ['linear', 'road'], 'accessi': ['access', 'site-access'],
+    'manufatti e interferenze': ['linear', 'other'], 'percorso sopralluogo': ['reference', 'survey-route'], 'ferrovia': ['linear', 'railway'] },
+  polygon: { 'perimetro netto': ['net', null], 'vincoli paesaggistici': ['exclusion', 'landscape'], 'vincoli archeologici': ['exclusion', 'archaeological'],
+    'vincoli beni culturali': ['exclusion', 'cultural-heritage'], 'vincoli da piani': ['exclusion', 'planning'],
+    'vincoli da piani di settore': ['exclusion', 'sector-plan'], 'pendenze alte': ['exclusion', 'steep-slope'],
+    'edifici ed aree rilevanti': ['obstacle', 'building'], 'vegetazione': ['exclusion', 'woodland'],
+    'misurazioni': ['reference', 'measurement'], 'dpa': ['exclusion', 'dpa'] },
+};
+const plainKey = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
 export const CATEGORY = Object.fromEntries(CATEGORIES.map(c => [c.id, c]));
 
 export function accepts(categoryId, geometry) {
@@ -53,8 +78,11 @@ function obstacleType(text) {
   return 'other';
 }
 
-// Geoportale (.axpo) drawing categories, from the IT Sites Notes domains
+// Geoportale (.axpo) drawings made before the site-features model: their old category (the IT Sites Notes
+// domains), exactly through FROM_SITE_NOTES, then by keywords for anything else
 function axpoCategory(cat, kind) {
+  const exact = (FROM_SITE_NOTES[kind] || {})[plainKey(cat)];
+  if (exact) return { category: exact[0], attrs: exact[1] ? { type: exact[1] } : {} };
   const c = String(cat || '').toLowerCase();
   if (!c) return null;
   if (/perimetro netto/.test(c)) return kind === 'polygon' ? { category: 'net' } : null;
@@ -76,9 +104,10 @@ function axpoCategory(cat, kind) {
 export function classify(f, ctx = {}) {
   const kind = geomKind(f.geometry);
   const props = f.properties || {};
-  // an explicit category written by this app (GeoJSON round trip)
+  // an explicit category: written by this app (GeoJSON round trip), by the Geoportale (.axpo, GeoJSON export) or
+  // read from the AGOL layer «IT - Site Features» — never guessed
   const explicit = props.category || props.role;
-  if (explicit && CATEGORY[explicit] && accepts(explicit, f.geometry)) return { category: explicit, attrs: pickAttrs(props) };
+  if (explicit && CATEGORY[explicit] && accepts(explicit, f.geometry)) return { category: explicit, attrs: pickAttrs(props, explicit) };
   if (ctx.type === 'axpo') {
     if (f.kind === 'parcel') return { category: 'reference', attrs: {} };
     const a = axpoCategory(f.sourceCategory, kind);
@@ -104,8 +133,15 @@ export function classify(f, ctx = {}) {
   return { category: 'reference', attrs: {} };
 }
 
-function pickAttrs(props) {
-  const a = {};
-  for (const k of ['buffer', 'height', 'type', 'width']) if (props[k] !== undefined && props[k] !== null && props[k] !== '') a[k] = props[k];
+// attributes of an explicit category that make sense for it: a type from its list, non-negative numbers
+function pickAttrs(props, category) {
+  const c = CATEGORY[category], a = {};
+  if (!c) return a;
+  if (c.attrs.includes('type') && c.types.includes(props.type)) a.type = props.type;
+  for (const k of ['buffer', 'height', 'width', 'voltage']) {
+    const v = Number(props[k]);
+    if (c.attrs.includes(k) && props[k] !== null && props[k] !== '' && isFinite(v) && v >= 0) a[k] = v;
+  }
+  if (a.voltage !== undefined && !POWER_TYPES.includes(a.type)) delete a.voltage;
   return a;
 }

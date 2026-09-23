@@ -47,5 +47,49 @@
    "tree",
    "pole"
   ]
+ },
+ "it_site_features": {
+  "categories": {
+   "Site C0000": [
+    "gross",
+    {}
+   ],
+   "Net from survey": [
+    "net",
+    {}
+   ],
+   "Vincolo": [
+    "exclusion",
+    {
+     "type": "landscape"
+    }
+   ],
+   "MT line": [
+    "linear",
+    {
+     "type": "overhead-power",
+     "voltage": 20,
+     "buffer": 5
+    }
+   ],
+   "Oak": [
+    "obstacle",
+    {
+     "type": "tree",
+     "height": 12,
+     "buffer": 3
+    }
+   ],
+   "Old DPA": [
+    "exclusion",
+    {
+     "type": "dpa"
+    }
+   ],
+   "Parcel Test 1/2": [
+    "reference",
+    {}
+   ]
+  }
  }
 }

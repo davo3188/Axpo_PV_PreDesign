@@ -42,6 +42,9 @@
 6. **4b · 3D** — SceneView with the terrain; tables as merged meshes at their real height and tilt; obstacles
    and their shade.
 7. **DWG / DXF import** — reuse the Geoportale DWG reader (layers to categories).
+7b. **Import from the portal by site** — sign in to ArcGIS Online and load a site (AREAS COLLECTION area + its
+   *IT - Site Features*) by project code, without going through an `.axpo` (Italy first; the layer schema can be
+   reused by the other countries' ArcGIS organisations).
 8. **Yield API** — when the internal yield tool exposes it.
 9. **Pilots** — one real site per country; in Poland compare with an existing HelioScope design, in Spain with a
    RatedPower one.

@@ -151,6 +151,41 @@ with open(os.path.join(OUT, "pl_obstacles.csv"), "w", encoding="utf-8", newline=
     fh.write("\n".join(";".join(r) for r in rows) + "\n")
 expected["pl_obstacles"] = {"n": 3, "heights": [12.5, 9, 14], "types": ["tree", "tree", "pole"]}
 
+# 8. Geoportale project with the site-features model: site of work (AREAS COLLECTION), drawings with sf_* codes,
+#    one old drawing with a Site Notes category and a parcel
+def gj_rect(lon, lat, dx, dy):
+    return {"type": "Polygon", "coordinates": [[[lon, lat], [lon + dx, lat], [lon + dx, lat + dy], [lon, lat + dy], [lon, lat]]]}
+
+
+lon0, lat0 = 10.0150, 45.1480
+project = {
+    "formato": "geoportale-axpo-progetto", "versione": 1, "nome": "Site features test",
+    "site": {"guid": "{AAAAAAAA-BBBB-4CCC-8DDD-000000000001}", "code": "C0000", "comune": "Test", "regione": "Lombardia", "ha": None,
+             "geom": gj_rect(lon0, lat0, 0.0060, 0.0040)},
+    "toolGeoms": [
+        {"g": gj_rect(lon0 + 0.0005, lat0 + 0.0005, 0.0050, 0.0030), "v": True, "s": None,
+         "a": {"_kind": "drawing", "geomType": "polygon", "nome": "Net from survey", "categoria": "Area netta", "sf_cat": "net", "sf_src": "survey"}},
+        {"g": gj_rect(lon0 + 0.0010, lat0 + 0.0010, 0.0008, 0.0006), "v": True, "s": None,
+         "a": {"_kind": "drawing", "geomType": "polygon", "nome": "Vincolo", "categoria": "Esclusione · Vincolo paesaggistico", "sf_cat": "exclusion", "sf_type": "landscape"}},
+        {"g": {"type": "LineString", "coordinates": [[lon0 - 0.0005, lat0 + 0.0020], [lon0 + 0.0065, lat0 + 0.0022]]}, "v": True, "s": None,
+         "a": {"_kind": "drawing", "geomType": "polyline", "nome": "MT line", "categoria": "Infrastruttura lineare · Elettrodotto aereo",
+               "sf_cat": "linear", "sf_type": "overhead-power", "sf_voltage": 20, "sf_buffer": 5, "sf_gid": "{11111111-2222-4333-8444-555555555555}", "sf_saved": True,
+               "sf_site": {"guid": "{AAAAAAAA-BBBB-4CCC-8DDD-000000000001}", "code": "C0000"}}},
+        {"g": {"type": "Point", "coordinates": [lon0 + 0.0040, lat0 + 0.0012]}, "v": True, "s": None,
+         "a": {"_kind": "drawing", "geomType": "point", "nome": "Oak", "categoria": "Ostacolo · Albero", "sf_cat": "obstacle", "sf_type": "tree", "sf_height": 12, "sf_buffer": 3}},
+        {"g": gj_rect(lon0 + 0.0030, lat0 + 0.0025, 0.0010, 0.0005), "v": True, "s": None,
+         "a": {"_kind": "drawing", "geomType": "polygon", "nome": "Old DPA", "categoria": "DPA"}},
+    ],
+    "parcels": [{"comune": "Test", "foglio": 1, "particella": 2, "geometry": gj_rect(lon0 + 0.0060, lat0, 0.0010, 0.0010)}],
+}
+with zipfile.ZipFile(os.path.join(OUT, "it_site_features.axpo"), "w", zipfile.ZIP_DEFLATED) as z:
+    z.writestr("progetto.json", json.dumps(project, ensure_ascii=False))
+expected["it_site_features"] = {"categories": {"Site C0000": ["gross", {}], "Net from survey": ["net", {}],
+                                               "Vincolo": ["exclusion", {"type": "landscape"}],
+                                               "MT line": ["linear", {"type": "overhead-power", "voltage": 20, "buffer": 5}],
+                                               "Oak": ["obstacle", {"type": "tree", "height": 12, "buffer": 3}],
+                                               "Old DPA": ["exclusion", {"type": "dpa"}], "Parcel Test 1/2": ["reference", {}]}}
+
 with open(os.path.join(OUT, "expected.json"), "w", encoding="utf-8", newline="\n") as fh:
     json.dump(expected, fh, indent=1)
 print("fixtures written:", sorted(os.listdir(OUT)))

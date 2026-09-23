@@ -41,18 +41,27 @@ export async function readAxpo(file) {
   const st = JSON.parse(await pj.async('text'));
   if (!st || st.formato !== 'geoportale-axpo-progetto') throw new Error(t('err.axpoNotProject'));
   const features = [];
+  // the site of work (an area of AREAS COLLECTION on the portal) is the gross area
+  if (st.site && st.site.geom) {
+    const s = st.site;
+    features.push({ name: `Site ${s.code || s.comune || ''}`.trim(), geometry: s.geom, sourceCategory: 'AREAS COLLECTION', kind: 'site',
+      properties: { category: 'gross', project_code: s.code || null, area_guid: s.guid || null } });
+  }
   for (const rec of st.toolGeoms || []) {
     const a = rec.a || {}, g = rec.g;
     if (!g) continue;
     const name = a.nome || a.categoria || ({ drawing: 'Drawing', buffer: 'Buffer', import: 'Imported' })[a._kind] || 'Object';
-    features.push({ name: String(name), geometry: g, sourceCategory: a.categoria || '', kind: a._kind || '', properties: {} });
+    // drawings with the site-features model carry their codes (sf_*): no guessing
+    const properties = a.sf_cat ? { category: a.sf_cat, type: a.sf_type, buffer: a.sf_buffer, height: a.sf_height, width: a.sf_width,
+      voltage: a.sf_voltage, project_code: a.sf_site && a.sf_site.code, note: a.note } : {};
+    features.push({ name: String(name), geometry: g, sourceCategory: a.categoria || '', kind: a._kind || '', properties });
   }
   for (const p of st.parcels || []) {
     if (!p.geometry) continue;
     const name = `Parcel ${p.comune || ''} ${p.foglio ?? ''}/${p.particella ?? ''}`.replace(/\s+/g, ' ').trim();
     features.push({ name, geometry: p.geometry, sourceCategory: 'parcel', kind: 'parcel', properties: {} });
   }
-  return { type: 'axpo', name: st.nome || file.name.replace(/\.axpo$/i, ''), features };
+  return { type: 'axpo', name: st.nome || file.name.replace(/\.axpo$/i, ''), features, site: st.site || null };
 }
 
 // ── GeoJSON (a legacy "crs" member with an EPSG code is honoured) ──
