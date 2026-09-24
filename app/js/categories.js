@@ -1,5 +1,5 @@
 // Area categories of step 1 and the automatic classification of imported objects. Pure module (no SDK).
-// Categories, types and attributes follow the shared "site-features" model 1.0.0 (AGOL Axpo
+// Categories, types and attributes follow the shared "site-features" model 1.1.0 (AGOL Axpo
 // schemas/site_features_model.json), also used by the Geoportale and by the AGOL layer «IT - Site Features»:
 // objects coming from there carry their codes and are never guessed.
 import { geomKind, linearTypeFor } from './state.js';
@@ -8,6 +8,9 @@ import { geomKind, linearTypeFor } from './state.js';
 export const CATEGORIES = [
   { id: 'gross', colour: [255, 140, 26], geom: ['polygon'], cuts: false, attrs: [] },
   { id: 'net', colour: [45, 190, 126], geom: ['polygon'], cuts: false, attrs: [] },
+  // the cable route to the point of connection (model 1.1.0): shown with its length, never cut from the site
+  { id: 'connection', colour: [139, 92, 246], geom: ['line'], cuts: false, attrs: ['type'],
+    types: ['estimated', 'confirmed'] },
   { id: 'exclusion', colour: [229, 72, 77], geom: ['polygon', 'line', 'point'], cuts: true, attrs: ['type', 'buffer'],
     types: ['landscape', 'archaeological', 'cultural-heritage', 'protected-area', 'planning', 'sector-plan', 'flood',
       'steep-slope', 'woodland', 'watercourse', 'dpa', 'setback', 'other'] },
@@ -49,9 +52,13 @@ export function accepts(categoryId, geometry) {
 }
 
 // Keywords in names, KML folders, layer names (IT, EN, FR, ES, DE, PL)
-// Order matters: the first match wins, and the generic "gross" words come last.
+// Order matters: the first match whose category takes the geometry wins, and the generic "gross" words come last.
+const CONNECTION_RE = /percorso di connessione|connection route|cable route|grid route|tracciato (del )?cavo|trac[ée] de raccordement|trazado de (la )?conexi|kabeltrasse|trasa kabl/;
 const KEYWORDS = [
   ['net', /perimetro netto|\bnet(to|ta|te)?\b|\bnetta\b|neto\b|buildable|surface utile|zone utile|nutzbar/],
+  // before «access»: its «connection point» words would otherwise take the cable route. Only route words: a plain
+  // «cavidotto» or «cable» is an existing line (linear infrastructure), not our route
+  ['connection', CONNECTION_RE],
   ['access', /access|ingress|entrance|entr[ée]e|acceso|zufahrt|einfahrt|wjazd|\bgate\b|cancell|portail|connection point|punto di connessione|point de raccordement|punto de conexi|netzanschluss|przył[aą]cz|\bpod\b/],
   ['mitigation', /mitigaz|mitigation|siepe|hedge|haie|seto|hecke|żywop|fascia verde|green belt|écran végétal|pantalla vegetal/],
   ['agri', /agricol|agricultural|culture|cultivo|coltiv|pascol|pâtur|pasture|weide|pastwisk|farming/],
@@ -63,9 +70,11 @@ const KEYWORDS = [
 // lower case, underscores as spaces (layer names such as "Area_lorda")
 const norm = text => String(text || '').toLowerCase().replace(/_/g, ' ');
 
-function keywordCategory(text) {
+// A category that does not take the geometry lets the next match through: a point «Punto di connessione» in a
+// KML folder «Percorso di connessione» is an access point, not a (line-only) connection route
+function keywordCategory(text, geometry) {
   const s = norm(text);
-  for (const [cat, re] of KEYWORDS) if (re.test(s)) return cat;
+  for (const [cat, re] of KEYWORDS) if (re.test(s) && accepts(cat, geometry)) return cat;
   return null;
 }
 
@@ -116,12 +125,13 @@ export function classify(f, ctx = {}) {
   }
   const text = [f.sourceCategory, f.name].filter(Boolean).join(' ');
   if (kind === 'line') {
+    if (CONNECTION_RE.test(norm(text))) return { category: 'connection', attrs: {} };   // before the power-line words
     const lin = linearTypeFor(text);
     if (lin) return { category: 'linear', attrs: { type: lin } };
   }
   const height = Number(props.height ?? props.h ?? props.altezza ?? props.hauteur ?? props.altura ?? props.hoehe);
-  const kw = keywordCategory(text);
-  if (kw && accepts(kw, f.geometry)) {
+  const kw = keywordCategory(text, f.geometry);
+  if (kw) {
     const attrs = kw === 'obstacle' ? { type: obstacleType(text) } : kw === 'access' ? { type: /connect|connessione|raccordement|conexi|anschluss|przył|\bpod\b/i.test(text) ? 'grid-connection' : 'site-access' } : {};
     if (kw === 'obstacle' && height > 0) attrs.height = height;
     return { category: kw, attrs };

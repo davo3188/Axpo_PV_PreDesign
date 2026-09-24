@@ -22,6 +22,22 @@ Italia, Polonia, Francia, Spagna, Germania e Svizzera. **Indipendente** dal Geop
 6. **Parte elettrica**: volutamente aperta (l'utente raccoglie le informazioni, ~6 mesi). Non inventarla.
 7. **Resa**: lo Yield tool interno esporrà un'API (non ancora disponibile). Fino ad allora kWh/kWp inseriti a mano.
 
+## Lavoro tra sessioni
+
+Tre sessioni di Claude Code lavorano sugli stessi progetti. Il punto d'incontro è `../AGOL Axpo/COORDINAMENTO.md`
+(proprietà dei file, stato, richieste aperte, registro), deciso dall'utente il 2026-09-24: **rileggerlo prima di
+mettersi al lavoro.**
+
+- Questa cartella è della sessione **Predesign webapp**: solo lei la modifica e ne fa i commit; le altre chiedono
+  le modifiche con un messaggio.
+- Prima di modificare un file rileggerlo dal disco: un'altra sessione può averlo cambiato dopo l'ultima lettura.
+- Categorie, tipi e attributi dello step Aree seguono il modello condiviso «site-features»
+  (`../AGOL Axpo/schemas/site_features_model.json`, oggi 1.1.0), usato anche dal Geoportale e dal layer AGOL
+  «IT - Site Features». Il modello è del **raccordo** («Allineamento Site notes, geoportal, PVPD»): una categoria,
+  un tipo o un attributo nuovo si chiede a lui, poi qui si allineano `app/js/categories.js` e `app/js/i18n.js`.
+- Dopo un commit o un cambio che tocca le altre sessioni: una riga nel *Registro* di COORDINAMENTO.md (o un
+  messaggio al raccordo, che la scrive). Niente commit né push se l'utente non li chiede.
+
 ## Stack e struttura
 
 - ArcGIS Maps SDK for JavaScript **4.34** caricato con `$arcgis.import()` (verificato: funziona in 4.34 ed è lo stesso
@@ -51,6 +67,11 @@ Italia, Polonia, Francia, Spagna, Germania e Svizzera. **Indipendente** dal Geop
 
 ## Repository
 
-Repository GitHub **privato** (da creare dall'utente: `gh` non è installato). Non committare dati di progetto reali,
-né il toolkit (resta nella cartella AGOL Axpo / GED URBADOC): il `.gitignore` esclude progetti, KML/KMZ, zip,
-Shapefile, CSV, GeoJSON, raster, DWG/DXF ed Excel, tranne i fixture sintetici di `tests/fixtures`.
+Repository git locale (ramo `main`) senza remoto. Per la pubblicazione, deciso con l'utente il 2026-09-24: repo
+GitHub **privata e separata**, mai quella del Geoportale (`davo3188/custom-AGOL-web-map` è pubblica e contiene la
+chiave Zornade; qui ci sono i valori interni del toolkit). La crea l'utente (`gh` non è installato) e passa l'URL;
+più avanti andrà spostata su un'organizzazione aziendale (GitHub o Azure DevOps), senza perdere la storia.
+
+Non committare dati di progetto reali, né il toolkit (resta nella cartella AGOL Axpo / GED URBADOC): il
+`.gitignore` esclude progetti, KML/KMZ, zip, Shapefile, CSV, GeoJSON, raster, DWG/DXF ed Excel, tranne i fixture
+sintetici di `tests/fixtures`.

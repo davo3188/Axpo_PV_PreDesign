@@ -223,6 +223,7 @@ function finishDraw(graphic) {
 function defaultAttrs(category) {
   if (category === 'obstacle') return { type: 'tree' };
   if (category === 'access') return { type: 'site-access' };
+  if (category === 'connection') return { type: 'estimated' };
   if (category === 'linear') return { type: 'other' };
   return {};
 }
@@ -340,7 +341,11 @@ function symbolFor(f) {
     const ref = f.category === 'reference';
     return { type: 'simple-fill', color: [...c, fillA], outline: { color: c, width: ref ? 1 : 2, style: ref ? 'dash' : 'solid' } };
   }
-  if (kind === 'line') return { type: 'simple-line', color: c, width: f.category === 'reference' ? 1.5 : 2.5, style: f.category === 'linear' && f.attrs?.type === 'underground-power' ? 'dash' : 'solid' };
+  if (kind === 'line') {
+    // dashed: underground cables, and connection routes not confirmed yet
+    const dashed = (f.category === 'linear' && f.attrs?.type === 'underground-power') || (f.category === 'connection' && f.attrs?.type !== 'confirmed');
+    return { type: 'simple-line', color: c, width: f.category === 'reference' ? 1.5 : f.category === 'connection' ? 3 : 2.5, style: dashed ? 'dash' : 'solid' };
+  }
   const style = f.category === 'obstacle' ? ({ tree: 'circle', pole: 'x', building: 'square' }[f.attrs?.type] || 'diamond') : f.category === 'access' ? 'triangle' : 'circle';
   return { type: 'simple-marker', style, color: c, size: f.category === 'obstacle' ? 9 : 10, outline: { color: style === 'x' ? c : [255, 255, 255], width: style === 'x' ? 2 : 1 } };
 }
@@ -351,7 +356,7 @@ const BUFFER_SYMBOL = c => ({ type: 'simple-fill', color: [...c, 0.12], outline:
 export function render() {
   const { Graphic, bufferOperator } = getSdk();
   featLayer.removeAll();
-  const order = { reference: 0, gross: 1, net: 2, agri: 3, mitigation: 4, exclusion: 5, linear: 6, obstacle: 7, access: 8 };
+  const order = { reference: 0, gross: 1, net: 2, agri: 3, mitigation: 4, exclusion: 5, linear: 6, connection: 7, obstacle: 8, access: 9 };
   const feats = [...store.project.features].sort((a, b) => (order[a.category] ?? 0) - (order[b.category] ?? 0));
   const frame = siteFrame();
   const graphics = [];
@@ -412,9 +417,10 @@ function row(f, c) {
   if (c.attrs.includes('voltage') && POWER_TYPES.includes(a.type)) inputs.push(num(f, 'voltage', a.voltage, t('attr.voltage')));
   if (c.attrs.includes('width') && kind === 'line') inputs.push(num(f, 'width', a.width, t('attr.width'), !(a.width > 0)));
   const moveOpts = CATEGORIES.filter(x => x.geom.includes(kind)).map(x => `<option value="${x.id}" ${x.id === f.category ? 'selected' : ''}>${esc(t('cat.' + x.id))}</option>`).join('');
+  const sub = [f.sourceCategory, f.category === 'connection' ? `${fmt(lineLengthKm(f.geometry), 2)} km` : ''].filter(Boolean).join(' · ');
   return `<div class="it" data-id="${f.id}">
     <span class="grip" draggable="true" title="${esc(t('areas.dragTitle'))}" aria-hidden="true">⠿</span>
-    <span class="nm" data-zoom="${f.id}" draggable="true" title="${esc(t('areas.rowTitle'))}">${esc(f.name)}${f.sourceCategory ? `<small>${esc(f.sourceCategory)}</small>` : ''}</span>
+    <span class="nm" data-zoom="${f.id}" draggable="true" title="${esc(t('areas.rowTitle'))}">${esc(f.name)}${sub ? `<small>${esc(sub)}</small>` : ''}</span>
     <select class="mv" data-id="${f.id}" title="${esc(t('areas.moveTo'))}" aria-label="${esc(t('areas.moveTo'))}">${moveOpts}</select>
     <button type="button" class="x ed" data-edit="${f.id}" title="${esc(t('areas.edit'))}" aria-label="${esc(t('areas.edit'))}">✎</button>
     <button type="button" class="x" data-del="${f.id}" title="${esc(t('areas.remove'))}" aria-label="${esc(t('areas.remove'))}">×</button>
@@ -443,8 +449,10 @@ function renderSummary() {
   k.push(kpi(minus(Math.max(0, r.baseArea - r.buildableArea)), t('areas.sumExcluded')));
   k.push(kpi(ha(r.buildableArea), t('areas.sumBuildable'), 'big'));
   const spread = siteSpreadKm();
+  const routes = routeSummary();
   el.innerHTML = `<div class="kpis">${k.join('')}</div>
     <div class="hint">${esc(t(r.netMode === 'given' ? 'areas.modeGiven' : 'areas.modeComputed'))}</div>
+    ${routes ? `<div class="hint">${esc(routes)}</div>` : ''}
     ${spread > SPREAD_WARN_KM ? `<div class="warn">${esc(t('warn.spread', { km: fmt(spread, 0) }))}</div>` : ''}
     ${r.ignored ? `<div class="warn">${esc(tn('warn.lineNoBuffer', r.ignored))}</div>` : ''}
     ${r.netMode === 'given' && store.project.settings.boundarySetback > 0 ? `<div class="hint">${esc(t('areas.setbackIgnored'))}</div>` : ''}`;
@@ -462,6 +470,23 @@ function siteSpreadKm() {
   return Math.hypot((xmax - xmin) * 111.32 * Math.cos(cy), (ymax - ymin) * 110.57);
 }
 const kpi = (v, k, cls = '') => `<div class="kpi ${cls}"><div class="v">${v}</div><div class="k">${esc(k)}</div></div>`;
+
+// Length in km of a line on the ellipsoid (grid connection routes can run for kilometres outside the site)
+export function lineLengthKm(geometry) {
+  const g = toSdk(geometry);
+  return g && g.type === 'polyline' ? getSdk().geodeticLengthOperator.execute(g, { unit: 'kilometers' }) : 0;
+}
+// Total length of the grid connection routes by type: "3.42 km estimated · 1.10 km confirmed"
+function routeSummary() {
+  const byType = new Map();
+  for (const f of store.project.features) {
+    if (f.category !== 'connection') continue;
+    const ty = CATEGORY.connection.types.includes(f.attrs?.type) ? f.attrs.type : '';
+    byType.set(ty, (byType.get(ty) || 0) + lineLengthKm(f.geometry));
+  }
+  const parts = [...byType].map(([ty, km]) => `${fmt(km, 2)} km ${ty ? t('type.' + ty).toLowerCase() : t('areas.routeNoType')}`);
+  return parts.length ? t('areas.sumRoute', { list: parts.join(' · ') }) : '';
+}
 
 // ── map helpers ──
 export function zoomToFeatures(ids) {

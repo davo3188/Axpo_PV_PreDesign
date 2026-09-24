@@ -23,6 +23,7 @@ const MODULES = {
   simplifyOperator: '@arcgis/core/geometry/operators/simplifyOperator.js',
   areaOperator: '@arcgis/core/geometry/operators/areaOperator.js',
   geodeticAreaOperator: '@arcgis/core/geometry/operators/geodeticAreaOperator.js',
+  geodeticLengthOperator: '@arcgis/core/geometry/operators/geodeticLengthOperator.js',
   centroidOperator: '@arcgis/core/geometry/operators/centroidOperator.js',
 };
 
@@ -37,7 +38,7 @@ export async function loadSdk() {
   const mods = await $arcgis.import(names.map(n => MODULES[n]));
   const loaded = Object.fromEntries(names.map((n, i) => [n, mods[i]]));
   await loaded.projectOperator.load();
-  if (typeof loaded.geodeticAreaOperator.load === 'function') await loaded.geodeticAreaOperator.load();
+  for (const op of [loaded.geodeticAreaOperator, loaded.geodeticLengthOperator]) if (typeof op.load === 'function') await op.load();
   sdk = loaded;
   return sdk;
 }

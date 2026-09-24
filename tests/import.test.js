@@ -7,7 +7,7 @@ import { loadCountries, countryAt, suggestCrs, candidatesForProjected, allOption
 import { readAnyFile } from '../app/js/io/importers.js';
 import { reprojectToWgs84, projectPointToWgs84, toGeoJSON } from '../app/js/geo/convert.js';
 import { makeLocalFrame } from '../app/js/geo/localframe.js';
-import { computeArea, siteFrame, importFiles } from '../app/js/areas.js';
+import { computeArea, siteFrame, importFiles, lineLengthKm } from '../app/js/areas.js';
 import { projectBlob, openProjectFile } from '../app/js/io/projectfile.js';
 import { buildGeoJSON } from '../app/js/output.js';
 
@@ -69,6 +69,14 @@ await test('classification of names, folders and layers', () => {
   eq(c('Acceso principal', Pt, 'Accesos'), { category: 'access', attrs: { type: 'site-access' } }, 'Accesos');
   eq(c('Punto di connessione', Pt), { category: 'access', attrs: { type: 'grid-connection' } }, 'connection');
   eq(c('Haie champêtre', L), { category: 'mitigation', attrs: {} }, 'Haie');
+  eq(c('Percorso di connessione MT', L), { category: 'connection', attrs: {} }, 'cable route by name');
+  eq(c('Cavidotto MT', L).category, 'linear', 'a plain cavidotto stays an existing line');
+  eq(c('Kabeltrasse zum Umspannwerk', L).category, 'connection', 'Kabeltrasse');
+  eq(c('Tracé de raccordement', L, '', {}).category, 'connection', 'tracé de raccordement');
+  eq(c('Su strada 3,4 km', L, '', { category: 'connection', type: 'estimated' }), { category: 'connection', attrs: { type: 'estimated' } }, 'explicit connection from the Geoportale');
+  eq(c('Percorso di connessione', Pt).category !== 'connection', true, 'a point is never a cable route');
+  eq(c('Punto di connessione', Pt, 'Percorso di connessione'), { category: 'access', attrs: { type: 'grid-connection' } }, 'connection point in a route folder');
+  eq(c('Tracciato del cavo', L, 'Percorso di connessione').category, 'connection', 'the route in the same folder');
   eq(c('T1', Pt, 'tree', { height: 12.5 }), { category: 'obstacle', attrs: { type: 'tree', height: 12.5 } }, 'CSV tree with height');
   eq(c('X', Pt, '', { height: 8 }), { category: 'obstacle', attrs: { type: 'other', height: 8 } }, 'point with height');
   eq(c('Something', P, '', {}, { type: 'kml', polygonsInFile: 2 }).category, 'gross', 'lone polygon');
@@ -308,6 +316,16 @@ await test('mitigation and agricultural strips: width of lines, whole polygons',
     { name: 'field', category: 'agri', geometry: rectL(0, 60, 50, 100) }]);
   const a = areaOf();
   near(a.buildableArea, 20000 - 6 * 200 - 50 * 40, 0.01, 'buildable');
+});
+await test('grid connection route: length on the ellipsoid, never cut from the site', () => {
+  // 0.01° along the meridian at 45° N is 1 111.3 m on the WGS 84 ellipsoid
+  near(lineLengthKm({ type: 'LineString', coordinates: [[10, 44.995], [10, 45.005]] }), 1.1113, 0.0005, 'meridian arc (km)');
+  useProject([{ name: 'gross', category: 'gross', geometry: rectL(0, 0, 200, 100) },
+    { name: 'route', category: 'connection', geometry: local('line', [[100, -500], [100, 50]]), attrs: { type: 'estimated' } }]);
+  const a = areaOf();
+  near(a.buildableArea, 20000, 0.01, 'not cut');
+  eq(a.ignored, 0, 'not counted among the lines without buffer');
+  near(lineLengthKm(store.project.features[1].geometry), 0.55, 0.0005, 'route of 550 m (km)');
 });
 
 // ── round trips ──

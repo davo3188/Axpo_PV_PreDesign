@@ -28,9 +28,11 @@ Ctrl+Shift+S, Ctrl+O), **Import**, and a badge with the coordinate system of the
 
 ### 1 · Areas
 
-- **Categories** — Gross area, Net area, Exclusion zones, Linear infrastructure (power lines, pipelines, ditches,
-  roads, railways), Obstacles (trees, poles, buildings, with height for their shade), Access & grid connection,
-  Mitigation (hedges, green screens), Agricultural zones, Reference (parcels and anything shown but not used).
+- **Categories** — Gross area, Net area, Grid connection route (the cable route to the point of connection, estimated
+  or confirmed: shown with its length in km, dashed until confirmed, never cut), Exclusion zones, Linear
+  infrastructure (power lines, pipelines, ditches, roads, railways), Obstacles (trees, poles, buildings, with height
+  for their shade), Access & grid connection point, Mitigation (hedges, green screens), Agricultural zones,
+  Reference (parcels and anything shown but not used).
 - **Per-object attributes** — buffer (exclusions, lines, obstacles), type, height, width (strips drawn as lines).
   Buffers are drawn on the map as they are cut.
 - **Moving objects** — drag them from one category to another (or use the *Move to* menu); a category refuses
@@ -98,8 +100,8 @@ Then open `http://localhost:8140/app/`. Tests, all in the browser:
 - `http://localhost:8140/tests/` — layout engine (12)
 - `http://localhost:8140/tests/sdk.html` — SDK and local frame (5)
 - `http://localhost:8140/tests/import.html` — classification, v1 → v2 migration, countries and proposed systems,
-  every national EPSG code, the import fixtures against the ArcGIS reference areas, net area, project and GeoJSON
-  round trips (22)
+  every national EPSG code, the import fixtures against the ArcGIS reference areas, Geoportale projects with the
+  site-features model, net area, grid connection route, project and GeoJSON round trips (25)
 
 No build step; any static web server works, but the app must be served over http(s), not opened as a file.
 The fixtures in `tests/fixtures` are synthetic and rebuilt with `scripts/make_fixtures.py` (ArcGIS Pro Python,
