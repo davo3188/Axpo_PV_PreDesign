@@ -60,17 +60,20 @@ mettersi al lavoro.**
 - Le pagine di test impostano `window.__PVP_TEST__` così non sovrascrivono il progetto salvato dall'app
   (stessa origine, stesso localStorage).
 - I fixture di `tests/fixtures` sono sintetici: si rigenerano con `scripts/make_fixtures.py` (Python di ArcGIS Pro,
-  arcpy), che scrive anche i valori di riferimento in `expected.json`.
+  arcpy), che scrive anche i valori di riferimento in `expected.json`. **Anche codici progetto, GUID, particelle e
+  nomi vanno inventati**, mai presi dal portale o da progetti veri: il 2026-09-24 un fixture portava codice e GUID
+  di un'area vera di AREAS COLLECTION (e una particella forse vera), tolti riscrivendo la storia prima del primo push.
 - Nel collaudo non far partire download veri: `showSaveFilePicker`/`showOpenFilePicker` finti **con**
   `createWritable`, e `HTMLAnchorElement.prototype.click` intercettato (un finto handle senza scrittura ha fatto
   scattare il download di ripiego il 2026-09-23).
 
 ## Repository
 
-Repository git locale (ramo `main`) senza remoto. Per la pubblicazione, deciso con l'utente il 2026-09-24: repo
-GitHub **privata e separata**, mai quella del Geoportale (`davo3188/custom-AGOL-web-map` è pubblica e contiene la
-chiave Zornade; qui ci sono i valori interni del toolkit). La crea l'utente (`gh` non è installato) e passa l'URL;
-più avanti andrà spostata su un'organizzazione aziendale (GitHub o Azure DevOps), senza perdere la storia.
+Remoto `origin` = **https://github.com/davo3188/Axpo_PV_PreDesign** (privato, creato dall'utente il 2026-09-24),
+ramo `main`. Repo separata dal Geoportale per scelta dell'utente: `davo3188/custom-AGOL-web-map` è pubblica e
+contiene la chiave Zornade, qui ci sono i valori interni del toolkit. Più avanti andrà spostata su un'organizzazione
+aziendale (GitHub o Azure DevOps), senza perdere la storia. `gh` non è installato; il push usa le credenziali di
+Git per Windows. Push solo su richiesta dell'utente; dopo il push, una riga nel Registro di COORDINAMENTO.md.
 
 Non committare dati di progetto reali, né il toolkit (resta nella cartella AGOL Axpo / GED URBADOC): il
 `.gitignore` esclude progetti, KML/KMZ, zip, Shapefile, CSV, GeoJSON, raster, DWG/DXF ed Excel, tranne i fixture
