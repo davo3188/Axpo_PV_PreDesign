@@ -39,15 +39,15 @@
 ## Next
 
 0. **Open answers** (see `docs/toolkit/group.md`): 15 % of fixed 2V / AgriPV fixed as steepest slope or per
-   direction; when the perimeter road may be left out; shading angle and roads of PL, ES, DE, CH.
+   direction; shading angle and roads of PL, ES, DE, CH.
 1. **Toolkit checks** — read the toolkit DWGs (IT done 2026-09-25, "ALL" for PL/DE, FR) to confirm the values marked `verify`:
    track width and orientation of the transversal tracks, AgriPV minimum pitches and heights, station sizes per kVA.
    Get the "Consignes techniques Pré design centrales au sol" (pitch rules), the road widths and a referent in the
    Design ESQ team.
 2. **0 · Terrain** — contour lines imported (to build a terrain where there is no model) and generated (to show
    and export); ASC / XYZ models if the teams use them; terrain in the 3D view and in the shade of obstacles.
-3. **3 · Infrastructure** — fence (offset of the buildable area: 6 m to the structures with the perimeter road in
-   Italy) with gates from the toolkit, roads with the toolkit widths (IT: 3 m light, 4 m heavy, R12 / R17), delivery and transformer stations placed with the NORMES rules (delivery station at the entrance,
+3. **3 · Infrastructure** — perimeter road as a switch, proposed on for plants up to about 9 MWp; fence (offset of
+   the buildable area: 6 m to the structures with the perimeter road in Italy, 4 m without) with gates from the toolkit, roads with the toolkit widths (IT: 3 m light, 4 m heavy, R12 / R17), delivery and transformer stations placed with the NORMES rules (delivery station at the entrance,
    transformer stations by MWp, fire tank within 50 m of the entrance); room reserved for the electrical part.
 4. **2 · Fields** — several fields per site with their own parameters, manual exceptions (remove / lock tables)
    kept across regenerations; obstacle shade (height → shadow on the tables, with the terrain).

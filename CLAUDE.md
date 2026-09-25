@@ -29,6 +29,9 @@ Italia, Polonia, Francia, Spagna, Germania e Svizzera. **Indipendente** dal Geop
 5. **Backup prima di modifiche rischiose** in `backups/` (`<file>_pre-<motivo>_<data>`), come nel progetto AGOL Axpo.
 6. **Parte elettrica**: volutamente aperta (l'utente raccoglie le informazioni, ~6 mesi). Non inventarla.
 7. **Resa**: lo Yield tool interno esporrà un'API (non ancora disponibile). Fino ad allora kWh/kWp inseriti a mano.
+8. **Predesign veloce e intuitivo** (utente, 2026-09-25): più accurato del solito, ma rapido. Le regole del toolkit
+   sono default e suggerimenti, mai vincoli rigidi: il progettista decide (es. strada perimetrale proposta fino a
+   ~9 MWp, non imposta). Le opzioni avanzate restano facoltative e non devono appesantire il percorso base.
 
 ## Lavoro tra sessioni
 
