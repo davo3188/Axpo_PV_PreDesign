@@ -18,7 +18,7 @@ The left rail holds the steps; clicking the active step again folds the panel aw
 | **0 · Terrain** | Optional: Esri World Elevation or your DTM / DSM (GeoTIFF) on a grid over the site, slope map, slopes over the limit of the structure cut from the buildable area; contour lines come next |
 | **1 · Areas** | Import or draw the areas, sorted into categories (below); net area given or computed |
 | **2 · Fields** | Modules (power by semester), structure (3V9 / 1V28 by default), tilt, azimuth, pitch, half tables, parametric layout and results |
-| **3 · Infrastructure** | Placeholder: fence and gates, roads (widths from the toolkit), cabins, room for the electrical part |
+| **3 · Infrastructure** | Fence with its clearance, perimeter road (suggested up to ~9 MWp), internal roads from the corridors, gates at the accesses, delivery / user / transformer stations with their clearance |
 | **4 · Output** | Coordinate system for exports, GeoJSON export; KML, Shapefile, DXF and the report come next |
 | **4b · 3D** | Placeholder |
 | **Electrical** | Kept open on purpose |
@@ -89,6 +89,23 @@ Ctrl+Shift+S, Ctrl+O), **Import**, and a badge with the coordinate system of the
 - **Half tables** — optional: where a whole table does not fit, a half one (1V14 for the 1V28) takes the grid place.
   The 3V9 is never split.
 
+### 3 · Infrastructure
+
+- **Fence** — along the outline of the land the plant can use (base area minus the objects of 1 · Areas; holes
+  inside are not fenced). The band between fence and structures is cut from the buildable area: in Italy 4 m, or
+  6 m with the perimeter road (1 m, 4 m road, 1 m). The designer can type another clearance or switch the fence off.
+- **Perimeter road** — a switch. It is the template for plants up to about 9 MWp: the panel shows the suggestion
+  for the current layout and the quick predesign applies it; the designer decides.
+- **Internal roads** — the corridors across the rows of 2 · Fields (e.g. a 4 m gap after 4 trackers in line),
+  drawn and measured inside the buildable area.
+- **Gates** — one on the fence next to each site access (toolkit width, 6 m in Italy).
+- **Stations** — delivery, user and transformer stations with the sizes of the country (IT: CT 8.70 × 3.00, CC and
+  CU 7.50 × 3.00 m) and 3 m kept free around them; delivery and user stations can be placed at the site access in one
+  click (flush with the fence, user station within 20 m); transformer stations by hand, with a hint of about one every
+  3 MWp (part of the electrical design, optional). Stations are cut from the buildable area.
+- Countries without toolkit values get no borrowed value: the panel says what is missing.
+- Fence, roads, stations and gates are part of the GeoJSON export.
+
 ### Coordinate systems
 
 - **Proposed from the site location**: the country comes from generalized outlines (`app/catalog/countries.json`),
@@ -134,7 +151,7 @@ py -3 scripts/serve.py 8140
 
 Then open `http://localhost:8140/app/`. Tests, all in the browser:
 
-- `http://localhost:8140/tests/` — layout engine, half tables (14)
+- `http://localhost:8140/tests/` — layout engine, half tables, corridors as roads (14)
 - `http://localhost:8140/tests/modules.html` — roadmap by semester, power periods, six-month alert, country catalog,
   slope limits, trackers, modules carried by projects (12)
 - `http://localhost:8140/tests/sdk.html` — SDK and local frame (5)
@@ -142,7 +159,8 @@ Then open `http://localhost:8140/app/`. Tests, all in the browser:
   every national EPSG code, the import fixtures against the ArcGIS reference areas, Geoportale projects with the
   site-features model, net area, grid connection route, project and GeoJSON round trips (25)
 - `http://localhost:8140/tests/terrain.html` — slopes, masks and outlines, GeoTIFF sampling, slope cut, project file (14)
-- `http://localhost:8140/tests/ui.html` — the real panels on a stand-in map view, quick predesign (7)
+- `http://localhost:8140/tests/infra.html` — fence, perimeter road, clearances, stations, stations at the access (8)
+- `http://localhost:8140/tests/ui.html` — the real panels on a stand-in map view, quick predesign, infrastructure (8)
 
 Without a browser, or where the CDNs are blocked: `tools/headless` runs every page in headless Chromium with the
 libraries bundled from npm (`npm install && npm run build && npm test`, see its README). GitHub Actions runs the same
@@ -175,6 +193,6 @@ tools/                headless test runner, CAD (DWG) reader — development too
 
 ## Not done yet
 
-Contour lines, fence, gates, roads and stations from the toolkit (Italian values are in the archive), 3D, several
+Contour lines, access road from the gate, 3D, several
 fields per site, exports in the national system (KML / Shapefile / DXF), report, DWG / DXF import, yield API,
 electrical design (deliberately left open). See `docs/plan.md`.
