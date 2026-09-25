@@ -44,9 +44,14 @@ session, M = two or three, L = more. «Needs» = what only the user can provide.
 
 ### Phase A — Consolidate and prove it (next)
 
+A1 done 2026-09-25 by the user in the browser: start, `.axpo` import by drag and drop, quick predesign (fixed and
+tracker), half tables, Esri terrain, save / open, GeoJSON export all fine. The roadmap import was checked on the real
+group workbook through the app's reader (10 periods S2 2024 – 2029, standard sheet, nothing from NZIA or hidden
+sheets); to be seen once in the browser. Merge into `main` still to do.
+
 | # | What | Why | Size | Needs |
 |---|---|---|---|---|
-| A1 | **Browser check and merge** of the milestone 3 branch: a short checklist (import a site, terrain from Esri and from a DTM, 3V9 and 1V28, roadmap import, save / open) | The app page cannot run in the cloud session: the user's browser is the last check | S | 20 minutes of the user |
+| A1 ✔ | **Browser check and merge** of the milestone 3 branch: a short checklist (import a site, terrain from Esri and from a DTM, 3V9 and 1V28, roadmap import, save / open) | The app page cannot run in the cloud session: the user's browser is the last check | S | 20 minutes of the user |
 | A2 ✔ | **Continuous tests on GitHub** (Actions running `tools/headless` on every push) | Every change checked automatically, whoever makes it | S | — |
 | A3 ✔ | **Quick predesign**: one button after the site is loaded — group standards, standard module of the current semester, toolkit minimum pitch of the country, optimised grid position — and a clear result card; empty states that say the next step | The core of the principle: a first answer in three clicks, details only if wanted | M | — |
 | A4 | **Pilot on one real Italian site** already designed by Engineering: compare buildable area, tables and MWp, note the gaps | Sets the accuracy the tool can claim (target to agree, e.g. ±5 % MWp) and shows what is missing | S | one site with its engineering layout |
