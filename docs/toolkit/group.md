@@ -43,8 +43,8 @@ Bifacial power (Wp) by period, column «CS - PPA FR et EU», read on 2026-09-25:
 |---|---|---|---|
 | Fixed 3V | **10 %** north–south and **10 %** east–west | USER | confirmed |
 | Tracker 1V | **15 % in every direction** | USER, IT-PC («pendenza impiantabile fino al 15% in tutte le direzioni») | confirmed |
-| Fixed 2V | **15 %** («sempre 15%») | USER | confirmed; applied **in every direction** (reading of the app, to confirm) |
-| AgriPV fixed (all structures) | **15 %** | USER | confirmed; applied **in every direction** (reading of the app, to confirm) |
+| Fixed 2V | **15 % in every direction** («sempre 15%») | USER | confirmed |
+| AgriPV fixed (all structures) | **15 % in every direction** | USER | confirmed |
 
 ## Infrastructure
 
@@ -55,6 +55,4 @@ Bifacial power (Wp) by period, column «CS - PPA FR et EU», read on 2026-09-25:
 
 ## Open questions
 
-- 15 % of fixed 2V and AgriPV fixed: steepest slope (every direction, as applied) or north–south and east–west
-  separately (as for the 3V)?
 - Shading angle, roads and stations for PL, ES, DE, CH (see the country files).

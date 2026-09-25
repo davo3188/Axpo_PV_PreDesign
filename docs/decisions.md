@@ -39,5 +39,5 @@
 | 2026-09-25 | Perimeter road: a template proposed for plants up to about 9 MWp, the designer decides | Stated by the user |
 | 2026-09-25 | Design principle: a predesign more accurate than usual but fast and intuitive — toolkit values as defaults and suggestions, advanced options optional, choices of the designer never locked | Stated by the user: most users want a quick predesign |
 | 2026-09-25 | NZIA variant of the module roadmap ignored; IT ground clearance 1.00 m and 1V28 drive gap 1.19 m confirmed | Stated by the user |
-| 2026-09-25 | Terrain optional; slope limits: fixed 3V 10 % N-S and E-W, tracker 1V 15 % in every direction (IT toolkit note), fixed 2V and AgriPV fixed 15 % (applied in every direction, to confirm); structures without a rule are not cut | Stated by the user; no invented limits |
+| 2026-09-25 | Terrain optional; slope limits: fixed 3V 10 % N-S and E-W, tracker 1V 15 % in every direction (IT toolkit note), fixed 2V and AgriPV fixed 15 % in every direction; structures without a rule are not cut | Stated by the user; no invented limits |
 | 2026-09-25 | Terrain sampled on a grid of the local frame (5 m by default), Horn slopes, cells partly covered by the model left unknown, patches under 250 m² ignored (app setting) | True metres as for the layout; a partial mean is not the elevation of the cell centre |

@@ -36,32 +36,57 @@
   of the structure (fixed 3V 10 % N-S / E-W, tracker 1V 15 %) cut from the buildable area; grid in the project file.
 - Tests: modules (12), terrain (14), panels on a stand-in view (5), half tables against the oracle; headless runner.
 
-## Next
+## Action plan (from 2026-09-25)
 
-0. **Open answers** (see `docs/toolkit/group.md`): 15 % of fixed 2V / AgriPV fixed as steepest slope or per
-   direction; shading angle and roads of PL, ES, DE, CH.
-1. **Toolkit checks** — read the toolkit DWGs (IT done 2026-09-25, "ALL" for PL/DE, FR) to confirm the values marked `verify`:
-   track width and orientation of the transversal tracks, AgriPV minimum pitches and heights, station sizes per kVA.
-   Get the "Consignes techniques Pré design centrales au sol" (pitch rules), the road widths and a referent in the
-   Design ESQ team.
-2. **0 · Terrain** — contour lines imported (to build a terrain where there is no model) and generated (to show
-   and export); ASC / XYZ models if the teams use them; terrain in the 3D view and in the shade of obstacles.
-3. **3 · Infrastructure** — perimeter road as a switch, proposed on for plants up to about 9 MWp; fence (offset of
-   the buildable area: 6 m to the structures with the perimeter road in Italy, 4 m without) with gates from the toolkit, roads with the toolkit widths (IT: 3 m light, 4 m heavy, R12 / R17), delivery and transformer stations placed with the NORMES rules (delivery station at the entrance,
-   transformer stations by MWp, fire tank within 50 m of the entrance); room reserved for the electrical part.
-4. **2 · Fields** — several fields per site with their own parameters, manual exceptions (remove / lock tables)
-   kept across regenerations; obstacle shade (height → shadow on the tables, with the terrain).
-5. **4 · Output** — KML / KMZ, Shapefile and DXF in the national system; PDF report for prospection and
-   engineering (site, areas, layout, capacity, assumptions, checks still to do); Excel bill of quantities.
-6. **4b · 3D** — SceneView with the terrain; tables as merged meshes at their real height and tilt; obstacles
-   and their shade.
-7. **DWG / DXF import** — reuse the Geoportale DWG reader (layers to categories).
-7b. **Import from the portal by site** — sign in to ArcGIS Online and load a site (AREAS COLLECTION area + its
-   *IT - Site Features*) by project code, without going through an `.axpo` (Italy first; the layer schema can be
-   reused by the other countries' ArcGIS organisations).
-8. **Yield API** — when the internal yield tool exposes it.
-9. **Pilots** — one real site per country; in Poland compare with an existing HelioScope design, in Spain with a
-   RatedPower one.
+Guiding principle (user, 2026-09-25): a predesign **more accurate than usual but fast and intuitive**. Toolkit values
+are defaults and suggestions, never locks; advanced options stay out of the basic path. Size: S = one working
+session, M = two or three, L = more. «Needs» = what only the user can provide.
+
+### Phase A — Consolidate and prove it (next)
+
+| # | What | Why | Size | Needs |
+|---|---|---|---|---|
+| A1 | **Browser check and merge** of the milestone 3 branch: a short checklist (import a site, terrain from Esri and from a DTM, 3V9 and 1V28, roadmap import, save / open) | The app page cannot run in the cloud session: the user's browser is the last check | S | 20 minutes of the user |
+| A2 | **Continuous tests on GitHub** (Actions running `tools/headless` on every push) | Every change checked automatically, whoever makes it | S | — |
+| A3 | **Quick predesign**: one button after the site is loaded — group standards, standard module of the current semester, toolkit minimum pitch of the country, optimised grid position — and a clear result card; empty states that say the next step | The core of the principle: a first answer in three clicks, details only if wanted | M | — |
+| A4 | **Pilot on one real Italian site** already designed by Engineering: compare buildable area, tables and MWp, note the gaps | Sets the accuracy the tool can claim (target to agree, e.g. ±5 % MWp) and shows what is missing | S | one site with its engineering layout |
+| A5 | **Robustness**: libraries served with the app instead of CDNs (corporate proxies), SheetJS update (known flaws of 0.18.5), CSV with quoted fields, start without a background map | Works on company networks and with real files | S | — |
+
+### Phase B — Complete the predesign (the deliverable for prospection and engineering)
+
+| # | What | Why | Size | Needs |
+|---|---|---|---|---|
+| B1 | **3 · Infrastructure v1**: perimeter road as a switch (proposed up to ~9 MWp), fence offset from the structures (IT: 6 m with the road, 4 m without), gate at the access point, internal roads from the corridors, delivery station at the access with its user station within 20 m, transformer stations placed by hand (hint: ~1 per 3 MWp) with their clearances cut from the field | Fence, roads and stations change the MWp: without them the predesign overstates the capacity | M–L | road / station rules of other countries when they come |
+| B2 | **4 · Output v1**: one-page PDF report (map, KPIs, assumptions with their toolkit sources, checks still to do) and KML / KMZ for Google Earth | What prospection sends around | M | a sample of today's reports, if any |
+| B3 | **4 · Output v2**: Shapefile and DXF in the national system for engineering, Excel bill of quantities (tables, modules, piles, fence, roads) | Hand-over to engineering without redrawing | M | the DXF layer names Engineering wants |
+| B4 | **2 · Fields v2**: remove / lock single tables by clicking, kept across regenerations; several fields per site with their own structure | Real sites need exceptions; kept optional | M | — |
+
+### Phase C — Better inputs
+
+| # | What | Why | Size | Needs |
+|---|---|---|---|---|
+| C1 | **Contour lines**: imported (DXF / Shapefile, when there is no model) and generated from the terrain for display and export | Terrain where no DTM exists; contours in the outputs | M | sample contour files |
+| C2 | **DWG / DXF import** of areas (layers to categories) | Sites often arrive as CAD | M | sample DWGs of sites |
+| C3 | **Import from the portal by project code** (Italy): ArcGIS sign-in, AREAS COLLECTION area + *IT - Site Features* | No `.axpo` round trip for Italian sites | M | portal access for the app |
+| C4 | **Obstacle shade** from their height (and the terrain) on the tables | Trees and poles near rows | M | — |
+
+### Phase D — Group roll-out
+
+| # | What | Why | Size | Needs |
+|---|---|---|---|---|
+| D1 | **Country toolkits**: each new document goes into `docs/toolkit/<country>.md`, then the catalog (shading angle, roads, stations, setbacks) | PL, ES, DE, CH get country rules instead of «no rule yet» | S per country | the documents, a referent per country |
+| D2 | **Hosting and sign-in**: static hosting on the company cloud (e.g. Azure Static Web Apps) with Entra ID; ArcGIS licence / API key for basemaps and World Elevation in production; repository moved to the company organisation | Colleagues use it without a local server; Esri terms for production use | M | IT department, ArcGIS organisation |
+| D3 | **Pilots per country**: Poland against a HelioScope design, Spain against a RatedPower one | Trust of the country teams | S each | one site per country |
+
+### Phase E — Later
+
+- **4b · 3D**: SceneView with the terrain, tables at their real height and tilt.
+- **Yield**: the internal yield tool API when it exists (typed-in kWh/kWp until then).
+- **Electrical design**: after the user's survey (kept open on purpose).
+
+### Suggested order
+
+A1 → A2 → A3 → A4 → B1 → B2 → A5 → B3 → C1 … Phase D runs alongside, as documents and decisions arrive.
 
 ## Open questions
 
