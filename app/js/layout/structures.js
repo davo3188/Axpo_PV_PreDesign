@@ -16,22 +16,24 @@ export function parseNotation(text) {
 }
 
 // Table geometry from a structure, a module and the tilt.
-// module: { length, width } in metres (long side, short side).
+// module: { length, width } in metres (long side, short side). extraLength: length added along the table that
+// is not modules (the drive / motor gap of a tracker, 1.19 m on the 1V27 of the IT toolkit).
 // Returns lengths along the row (tableLength), up the slope (slopeDepth), in plan (planDepth) and the rise
 // between low and high edge.
-export function tableGeometry({ notation, module, moduleGap = 0.02, tiltDeg = 0 }) {
+export function tableGeometry({ notation, module, moduleGap = 0.02, tiltDeg = 0, extraLength = 0 }) {
   const s = typeof notation === 'string' ? parseNotation(notation) : notation;
   if (!s) throw new Error(`Unknown structure notation: ${notation}`);
   if (!(module && module.length > 0 && module.width > 0)) throw new Error('Module dimensions missing');
   const alongDim = s.orientation === 'V' ? module.width : module.length;
   const acrossDim = s.orientation === 'V' ? module.length : module.width;
-  const tableLength = s.along * alongDim + (s.along - 1) * moduleGap;
+  const tableLength = s.along * alongDim + (s.along - 1) * moduleGap + (extraLength || 0);
   const slopeDepth = s.across * acrossDim + (s.across - 1) * moduleGap;
   const t = tiltDeg * Math.PI / 180;
   return {
     ...s,
     moduleGap,
     tiltDeg,
+    extraLength: extraLength || 0,
     tableLength,
     slopeDepth,
     planDepth: slopeDepth * Math.cos(t),
@@ -57,4 +59,11 @@ export function shadingAngleDeg(geom, pitch) {
 // Ground coverage ratio: collector width (slope depth) over pitch.
 export function gcr(geom, pitch) {
   return geom.slopeDepth / pitch;
+}
+
+// Half table of a structure (half strings): the notation given by the catalog preset (1V28 -> 1V14), or null when
+// the toolkit defines none. Same modules across, half as many along.
+export function halfNotation(preset) {
+  const h = preset && preset.half ? parseNotation(preset.half) : null;
+  return h || null;
 }

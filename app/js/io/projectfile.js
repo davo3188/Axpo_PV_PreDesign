@@ -2,6 +2,7 @@
 import { t } from '../i18n.js';
 import { store, replaceProject, PROJECT_FORMAT } from '../state.js';
 import { toast } from '../ui/toast.js';
+import { usedModules } from '../modules.js';
 
 const JSZIP_URL = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm';
 export const PROJECT_EXT = '.pvpd';
@@ -10,7 +11,8 @@ let handle = null;   // file handle of the open project (File System Access API)
 export async function projectBlob() {
   const JSZip = (await import(JSZIP_URL)).default;
   const zip = new JSZip();
-  const p = { ...store.project, saved: new Date().toISOString(), app: 'PV Predesign' };
+  // the modules the project uses travel with it: it opens with the same modules on any computer
+  const p = { ...store.project, moduleDefs: usedModules(), saved: new Date().toISOString(), app: 'PV Predesign' };
   zip.file('project.json', JSON.stringify(p, null, 1));
   return zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
 }

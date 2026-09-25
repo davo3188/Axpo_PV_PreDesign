@@ -191,6 +191,7 @@ input:focus, select:focus { outline: 2px solid color-mix(in srgb, var(--accent) 
 .it .sw { flex: none; width: 10px; height: 10px; border-radius: 3px; }
 .it .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .it .nm small { display: block; color: var(--mut); font-size: 11px; }
+.it .nm small.stale { color: var(--warn); font-weight: 600; white-space: normal; }
 .it select { width: auto; padding: 2px 4px; font-size: 12px; }
 .it .x { flex: none; background: none; border: 0; cursor: pointer; color: var(--mut); font-size: 15px; line-height: 1; padding: 2px 4px; border-radius: 4px; }
 .it .x:hover { color: var(--err); background: var(--hover); }

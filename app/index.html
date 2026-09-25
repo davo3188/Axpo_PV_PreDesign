@@ -137,6 +137,11 @@
           <div class="hint" id="fStructHint"></div>
           <label class="l" for="fModule" data-i18n="field.module"></label>
           <select id="fModule"></select>
+          <div id="fPeriodBox" hidden>
+            <label class="l" for="fPeriod" data-i18n="field.period"></label>
+            <select id="fPeriod"></select>
+            <div class="hint" data-i18n="field.periodHint"></div>
+          </div>
           <div class="row2">
             <div id="fTiltBox"><label class="l" for="fTilt" data-i18n="field.tilt"></label><input id="fTilt" type="number" min="0" max="60" step="0.5"></div>
             <div><label class="l" for="fAz" data-i18n="field.azimuth"></label><input id="fAz" type="number" min="0" max="360" step="1"></div>
@@ -150,10 +155,13 @@
             <div><label class="l" for="fModGap" data-i18n="field.moduleGap"></label><input id="fModGap" type="number" min="0" step="0.005"></div>
           </div>
           <label class="chk"><input type="checkbox" id="fTracks"> <span data-i18n="field.tracks"></span></label>
-          <div class="row2">
+          <div class="row3">
             <div><label class="l" for="fTrackEvery" data-i18n="field.tracksEvery"></label><input id="fTrackEvery" type="number" min="10" step="1"></div>
+            <div><label class="l" for="fTrackTables" data-i18n="field.tracksTables"></label><input id="fTrackTables" type="number" min="1" step="1"></div>
             <div><label class="l" for="fTrackWidth" data-i18n="field.tracksWidth"></label><input id="fTrackWidth" type="number" min="0" step="0.5"></div>
           </div>
+          <label class="chk"><input type="checkbox" id="fHalf"> <span data-i18n="field.half"></span></label>
+          <div class="hint" id="fHalfHint"></div>
           <label class="l" for="fTarget"><span data-i18n="field.target"></span> <span class="opt" data-i18n="field.optional"></span></label>
           <input id="fTarget" type="number" min="0" step="0.1">
           <label class="l" data-i18n="field.position"></label>
