@@ -63,8 +63,8 @@ Ctrl+Shift+S, Ctrl+O), **Import**, and a badge with the coordinate system of the
 - **Slopes** — steepest slope and its north–south / east–west components per cell (Horn's weights), shown in classes
   0–5–10–15–25 %.
 - **Slope limit of the structure** — from the catalog: fixed 3V at most 10 % north–south and 10 % east–west,
-  tracker 1V at most 15 % in every direction; structures without a rule (fixed 2V, AgriPV fixed) are not cut and the
-  panel says so. Cells over the limit (patches under 250 m² ignored, an app setting) are cut from the buildable area.
+  fixed 2V, AgriPV fixed and tracker 1V at most 15 % in every direction; structures without a rule are not cut and
+  the panel says so. Cells over the limit (patches under 250 m² ignored, an app setting) are cut from the buildable area.
 - The grid is kept in the browser (IndexedDB) and inside the project file (`terrain/grid.f32`).
 
 ### 2 · Fields
@@ -81,7 +81,7 @@ Ctrl+Shift+S, Ctrl+O), **Import**, and a badge with the coordinate system of the
 - **Minimum pitch by country** — shading angle of the country of the site (Italy 29°, France 35°); countries without
   a toolkit value get no suggestion instead of a borrowed one.
 - **Half tables** — optional: where a whole table does not fit, a half one (1V14 for the 1V28) takes the grid place.
-  The half table of a 3V9 is not defined yet.
+  The 3V9 is never split.
 
 ### Coordinate systems
 

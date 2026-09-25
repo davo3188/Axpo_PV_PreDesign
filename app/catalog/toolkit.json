@@ -1,6 +1,6 @@
 {
  "schema": "pv-predesign-catalog",
- "version": "0.2.0",
+ "version": "0.2.1",
  "updated": "2026-09-25",
  "owner": "Design ESQ team (Urbasolar) - to be confirmed",
  "notes": "Transcribed from the toolkit documents of the group; the archive behind every value is docs/toolkit/ (one file per country). Every value carries its source; 'verify: true' marks values read from a drawing or an extraction that still need a check. Top-level values hold for every country; country values live under countries.<ISO>. The app never borrows a country value for another country: a missing rule is reported as missing. Table sizes are computed from the chosen module; pitch is always set by the user.",
@@ -91,7 +91,7 @@
    ],
    "importedAt": "2026-09-25",
    "source": "ROADMAP",
-   "note": "Powers are updated every six months: the app warns when they are more than six months old. NZIA variant (620 Wp flat from S1 2027): when it applies is open"
+   "note": "Powers are updated every six months: the app warns when they are more than six months old. The NZIA variant of the roadmap is ignored (USER)"
   }
  ],
  "defaults": {
@@ -145,6 +145,27 @@
    "unit": "%",
    "source": "USER",
    "text": "Fixed 3V: 10% north-south and 10% east-west"
+  },
+  {
+   "id": "fixed-2v",
+   "applies": {
+    "technology": "ground-fixed",
+    "across": 2
+   },
+   "maxAny": 15,
+   "unit": "%",
+   "source": "USER",
+   "text": "Fixed 2V: 15% in every direction"
+  },
+  {
+   "id": "agri-fixed",
+   "applies": {
+    "technology": "agri-fixed"
+   },
+   "maxAny": 15,
+   "unit": "%",
+   "source": "USER",
+   "text": "AgriPV fixed: 15% in every direction"
   },
   {
    "id": "tracker-1v",
@@ -252,7 +273,7 @@
     "concrete-longrine",
     "shallow"
    ],
-   "note": "Group standard (27 modules). for 132-cell M10 bifacial modules",
+   "note": "Group standard (27 modules), never split: no half table (USER). for 132-cell M10 bifacial modules",
    "reference": {
     "moduleWidth": 1.134,
     "moduleLength": 2.382,
@@ -264,7 +285,8 @@
     "source": "CS"
    },
    "source": "CS",
-   "standard": true
+   "standard": true,
+   "half": false
   },
   {
    "id": "3V18",
@@ -375,8 +397,7 @@
    },
    "half": "1V14",
    "source": "USER, IT-PC",
-   "verify": true,
-   "note": "Tracker length = 28 modules + 27 gaps of 0.02 m + 1.19 m drive gap (measured on the 1V27 of the IT DWG: 32.33 m). 0.50 m between trackers in line, at most 4 in line then a 4 m gap (IT-PC). Half tracker 1V14 derived. Pitch agreed with the farm (IT drawings: 5.50 or 6.00 m)"
+   "note": "Tracker length = 28 modules + 27 gaps of 0.02 m + 1.19 m drive gap (measured on the 1V27 of the IT DWG: 32.33 m; same gap for the 1V28 confirmed by the user). 0.50 m between trackers in line, at most 4 in line then a 4 m gap (IT-PC). Half tracker 1V14 (half strings, confirmed by the user). Pitch agreed with the farm (IT drawings: 5.50 or 6.00 m)"
   },
   {
    "id": "TRACKER-1V27-IT",
@@ -413,8 +434,8 @@
     "lowEdgeHeight": {
      "value": 1.0,
      "unit": "m",
-     "source": "IT-PC",
-     "verify": true
+     "source": "IT-PC, USER",
+     "note": "Ground clearance of the fixed structures, confirmed by the user"
     }
    },
    "tracker": {

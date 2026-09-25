@@ -139,7 +139,7 @@ await test('slope of the plane seen in the local frame: 12 %, grid convergence o
   return `${mag.toFixed(3)} %, turned ${conv.toFixed(2)}°`;
 });
 
-await test('slope limit of the structure cuts the buildable area: fixed 3V all, tracker 1V nothing, 2V no rule', async () => {
+await test('slope limit of the structure cuts the buildable area: fixed 3V all, tracker 1V and fixed 2V nothing, no rule no cut', async () => {
   const r = await sampleDtm(file, site.frame, site.def);
   const meta = { id: 'plane', lon0: site.frame.lon0, lat0: site.frame.lat0, ...site.def, source: 'dtm', name: 'plane', loadedAt: '2026-09-25T00:00:00Z', zmin: 0, zmax: 1, missing: 0 };
   await useGrid(meta, r.z, { persist: false });
@@ -153,8 +153,11 @@ await test('slope limit of the structure cuts the buildable area: fixed 3V all, 
   near(a.buildableArea, gross, 1e-6 * gross, 'tracker 1V: 12 % < 15 %');
   store.project.field = { ...store.project.field, technology: 'ground-fixed', structure: '2V13' };
   a = computeArea(siteFrame());
-  near(a.buildableArea, gross, 1e-6 * gross, 'fixed 2V: no rule, nothing cut');
-  assert(a.notes.some(n => /no slope limit for 2V13/.test(n)), 'the missing rule is said');
+  near(a.buildableArea, gross, 1e-6 * gross, 'fixed 2V: 12 % < 15 %');
+  store.project.field = { ...store.project.field, technology: 'ground-fixed', structure: '4H6' };
+  a = computeArea(siteFrame());
+  near(a.buildableArea, gross, 1e-6 * gross, 'no rule, nothing cut');
+  assert(a.notes.some(n => /no slope limit for 4H6/.test(n)), 'the missing rule is said');
   store.project.field = { ...store.project.field, technology: 'ground-fixed', structure: '3V9' };
   store.project.terrain.applySlopeLimit = false;
   near(computeArea(siteFrame()).buildableArea, gross, 1e-6 * gross, 'cut switched off');

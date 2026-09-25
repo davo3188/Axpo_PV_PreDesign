@@ -38,9 +38,8 @@
 
 ## Next
 
-0. **Open answers** (see `docs/toolkit/group.md`): half table of a 3V9; slope limits of fixed 2V and AgriPV
-   fixed; when the NZIA module variant applies; when the perimeter road may be left out; shading angle and roads of
-   PL, ES, DE, CH.
+0. **Open answers** (see `docs/toolkit/group.md`): 15 % of fixed 2V / AgriPV fixed as steepest slope or per
+   direction; when the perimeter road may be left out; shading angle and roads of PL, ES, DE, CH.
 1. **Toolkit checks** — read the toolkit DWGs (IT done 2026-09-25, "ALL" for PL/DE, FR) to confirm the values marked `verify`:
    track width and orientation of the transversal tracks, AgriPV minimum pitches and heights, station sizes per kVA.
    Get the "Consignes techniques Pré design centrales au sol" (pitch rules), the road widths and a referent in the

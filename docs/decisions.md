@@ -35,6 +35,7 @@
 | 2026-09-25 | Modules used by a project are saved in its file and adopted by the library that opens it | Audit: a project opened on another computer silently took another module |
 | 2026-09-25 | Italian shading angle 29° (sections «T 15° / AO 29°» of the IT toolkit), France 35° | IT toolkit DWG; the pitches of the drawing (6.85 / 10.30 m) match the formula |
 | 2026-09-25 | Tracker length = modules + 1.19 m drive gap; 0.50 m between trackers in line; at most 4 in line, then 4 m | Measured on the 1V27 blocks of the IT DWG (32.33 m); dimension «4 TRACKER MAX.» |
-| 2026-09-25 | Half tables (half strings) only as an option; a half keeps the column grid; 1V14 for the 1V28, none yet for the 3V9 | Stated by the user; the half of 27 modules on 3 rows is an open question |
-| 2026-09-25 | Terrain optional; slope limits: fixed 3V 10 % N-S and E-W, tracker 1V 15 % in every direction (IT toolkit note); structures without a rule are not cut | Stated by the user; no invented limits |
+| 2026-09-25 | Half tables (half strings) only as an option; a half keeps the column grid; 1V14 for the 1V28; the 3V9 is never split | Stated by the user |
+| 2026-09-25 | NZIA variant of the module roadmap ignored; IT ground clearance 1.00 m and 1V28 drive gap 1.19 m confirmed | Stated by the user |
+| 2026-09-25 | Terrain optional; slope limits: fixed 3V 10 % N-S and E-W, tracker 1V 15 % in every direction (IT toolkit note), fixed 2V and AgriPV fixed 15 % (applied in every direction, to confirm); structures without a rule are not cut | Stated by the user; no invented limits |
 | 2026-09-25 | Terrain sampled on a grid of the local frame (5 m by default), Horn slopes, cells partly covered by the model left unknown, patches under 250 m² ignored (app setting) | True metres as for the layout; a partial mean is not the elevation of the cell centre |

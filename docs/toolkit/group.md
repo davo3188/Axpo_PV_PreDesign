@@ -18,8 +18,8 @@ Bifacial power (Wp) by period, column «CS - PPA FR et EU», read on 2026-09-25:
 |---|---|---|---|---|---|---|---|---|---|
 | 620 | 625 | 630 | 650 | 650 | 655 | 660 | 665 | 670 | 675 |
 
-- The sheet «Roadmap Module - Critères NZIA» has a variant of the same module at **620 Wp flat** (S1 2027–2029):
-  when it applies is **open**.
+- The sheet «Roadmap Module - Critères NZIA» has a variant of the same module at 620 Wp flat (S1 2027–2029):
+  **ignored** (USER, 2026-09-25).
 - The roadmap also carries prices, ECS (carbon) values and other module families (108 / 96 / 144 cells, CdTe):
   the app does **not** read prices.
 - «Roadmap Structure CS - Standard» repeats the powers (S1 2026 650, S2 2026 650, 2027 655) and gives a
@@ -30,10 +30,12 @@ Bifacial power (Wp) by period, column «CS - PPA FR et EU», read on 2026-09-25:
 | Technology | Standard | Source | Status |
 |---|---|---|---|
 | Ground-mounted fixed | **3V9** (27 modules per structure), tilt **15°**, facing south | USER | confirmed |
-| Half strings (half tables) | allowed **only as an option** the designer selects | USER | confirmed; the half table of a 3V9 is **open** (27 modules cannot be halved on 3 rows: which notation?) |
+| Half strings (half tables) | allowed **only as an option** the designer selects | USER | confirmed |
+| 3V9 | **never split**: no half table | USER | confirmed |
 | Tracker | **1V28**, single axis north–south, rotation **±55°** | USER | confirmed |
 | Tracker pitch | agreed with the farm for each project (no default) | USER | confirmed |
-| Tracker half | 1V14 (half of 28 modules) | derived | verify |
+| Tracker half | 1V14 (half of 28 modules) | USER | confirmed |
+| Tracker drive gap | 1.19 m, as measured on the 1V27 of the IT drawing | IT-PC, USER | confirmed |
 
 ## Slope limits
 
@@ -41,7 +43,8 @@ Bifacial power (Wp) by period, column «CS - PPA FR et EU», read on 2026-09-25:
 |---|---|---|---|
 | Fixed 3V | **10 %** north–south and **10 %** east–west | USER | confirmed |
 | Tracker 1V | **15 % in every direction** | USER, IT-PC («pendenza impiantabile fino al 15% in tutte le direzioni») | confirmed |
-| Fixed 2V, AgriPV fixed | — | — | open |
+| Fixed 2V | **15 %** («sempre 15%») | USER | confirmed; applied **in every direction** (reading of the app, to confirm) |
+| AgriPV fixed (all structures) | **15 %** | USER | confirmed; applied **in every direction** (reading of the app, to confirm) |
 
 ## Infrastructure
 
@@ -52,7 +55,7 @@ Bifacial power (Wp) by period, column «CS - PPA FR et EU», read on 2026-09-25:
 
 ## Open questions
 
-- Half table of a 3V9 (half strings option).
-- When the NZIA variant (620 Wp) replaces the standard column.
-- Slope limits of fixed 2V and AgriPV fixed structures.
+- 15 % of fixed 2V and AgriPV fixed: steepest slope (every direction, as applied) or north–south and east–west
+  separately (as for the 3V)?
+- When the perimeter road may be left out.
 - Shading angle, roads and stations for PL, ES, DE, CH (see the country files).

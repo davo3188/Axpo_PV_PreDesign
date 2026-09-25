@@ -313,6 +313,7 @@ const EN = {
   'field.half': 'Half tables (half strings) where a whole one does not fit',
   'field.halfOk': 'Optional: a half table ({half}) takes a grid place where a whole table does not fit.',
   'field.halfNone': 'The toolkit defines no half table for {structure}.',
+  'field.halfNever': 'A {structure} is never split: no half tables.',
   'field.tracksWidth': 'Width (m)',
   'field.target': 'Target DC capacity (MWp)',
   'field.optional': 'optional',

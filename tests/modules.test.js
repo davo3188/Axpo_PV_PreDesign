@@ -104,13 +104,15 @@ await test('catalog: country values are never borrowed', () => {
   eq(countryValue('IT', 'tracker.pitchExamples').value, [5.5, 6], 'Italian tracker pitches');
 });
 
-await test('slope limits: fixed 3V 10 % N-S and E-W, tracker 1V 15 % any direction, none for 2V', () => {
+await test('slope limits: fixed 3V 10 % N-S and E-W; fixed 2V, AgriPV fixed and tracker 1V 15 % any direction', () => {
   const f = slopeLimitFor('ground-fixed', parseNotation('3V9'));
   assert(f && f.maxNS === 10 && f.maxEW === 10 && f.maxAny == null, 'fixed 3V');
   const t = slopeLimitFor('agri-tracker', parseNotation('1V28'));
   assert(t && t.maxAny === 15, 'tracker 1V');
-  eq(slopeLimitFor('ground-fixed', parseNotation('2V13')), null, 'fixed 2V: open');
-  eq(slopeLimitFor('agri-fixed', parseNotation('2V9')), null, 'AgriPV fixed: open');
+  const f2 = slopeLimitFor('ground-fixed', parseNotation('2V13'));
+  assert(f2 && f2.id === 'fixed-2v' && f2.maxAny === 15 && f2.maxNS == null, 'fixed 2V');
+  for (const n of ['2V9', '3H8', '10H1']) eq(slopeLimitFor('agri-fixed', parseNotation(n))?.maxAny, 15, 'AgriPV fixed ' + n);
+  eq(slopeLimitFor('ground-fixed', parseNotation('4H6')), null, 'a fixed structure without a rule');
 });
 
 // ── structures ──
@@ -129,7 +131,9 @@ await test('trackers: length with the drive gap (1V27 = 32.33 m of the IT drawin
   eq(p28.corridor, { tables: 4, width: 4 }, 'corridor after 4 trackers');
   eq(p28.tableGap, 0.5, 'gap between trackers in line');
   eq(halfNotation(p28).notation, '1V14', 'half tracker');
-  eq(halfNotation(presetFor('ground-fixed', '3V9')), null, '3V9 half: open');
+  eq(halfNotation(presetFor('ground-fixed', '3V9')), null, '3V9 is never split');
+  eq(presetFor('ground-fixed', '3V9').half, false, '3V9: half false in the catalog');
+  assert(!p28.verify, '1V28 values confirmed');
 });
 
 // ── modules travel with the project ──

@@ -62,7 +62,7 @@ export function gcr(geom, pitch) {
 }
 
 // Half table of a structure (half strings): the notation given by the catalog preset (1V28 -> 1V14), or null when
-// the toolkit defines none. Same modules across, half as many along.
+// the toolkit defines none or says the structure is never split (half: false, e.g. the 3V9). Same modules across, half as many along.
 export function halfNotation(preset) {
   const h = preset && preset.half ? parseNotation(preset.half) : null;
   return h || null;

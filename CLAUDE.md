@@ -18,7 +18,8 @@ Italia, Polonia, Francia, Spagna, Germania e Svizzera. **Indipendente** dal Geop
 3. **Moduli gestiti dall'utente**: inseriti a mano o importati dalle roadmap (CSV/XLSX), più la lista dei moduli
    previsti per il progetto. Standard di gruppo (2026-09-25): solo bifacciali TOPCon 2382 × 1134, potenza per semestre
    dalla roadmap di gruppo (colonna «CS - PPA FR et EU»; avviso oltre 6 mesi dal caricamento; i prezzi non si leggono);
-   3V9 a terra a 15°, tracker 1V28 ±55° con interasse deciso con l'azienda agricola; mezze tabelle solo come opzione.
+   3V9 a terra a 15° (mai spezzato), tracker 1V28 ±55° con interasse deciso con l'azienda agricola; mezze tabelle solo
+   come opzione (1V14 per il 1V28). Variante NZIA della roadmap ignorata.
    Interfila, modulo (Wp) e tipo di struttura (notazione `nVm` / `nHm`) si scelgono a mano per ogni campo; l'app
    propone solo i minimi del toolkit e avvisa. I moduli usati viaggiano nel file di progetto.
 4. **Misure esatte.** Il layout si calcola in una proiezione Trasversa di Mercatore locale centrata sul sito (scala 1):

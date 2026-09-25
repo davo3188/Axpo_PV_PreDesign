@@ -22,7 +22,7 @@ version» at AO 25°. Supports: vertical piles or concrete footing (shape and nu
 | Pitch at AO 25° (old) | 2V: 4.62 + 2.66 · 3V: 6.94 + 3.99 | IT-PC DWG | confirmed |
 | Gap between tables | 0.30 m | IT-PC DWG | confirmed |
 | Gap between modules | 0.02 m | IT-PC DWG | confirmed |
-| Ground clearance (low edge) | 1.00 m | IT-PC DWG (dimension 1.00 under the section) | verify |
+| Ground clearance (low edge) | 1.00 m | IT-PC DWG (dimension 1.00 under the section), USER 2026-09-25 | confirmed |
 | Structures drawn | 2V13 (14.98), 2V14 (16.14), 2V26 (29.98), 2V28 (32.29), 3V8 (9.21), 3V9 (10.37), 3V16 (18.44), 3V18 (20.75) — lengths in m | IT-PC DWG | confirmed; all equal `n × 1.134 + (n − 1) × 0.02` (2V26 / 2V28 = two tables with a 0.50 m joint) |
 
 ## Trackers 1V
@@ -34,7 +34,7 @@ version» at AO 25°. Supports: vertical piles or concrete footing (shape and nu
 | Rotation | ±55° | IT-PC | confirmed |
 | Pitch | 6.00 m or 5.50 m in the drawings (free space 3.62 / 3.12 m) | IT-PC | examples: the pitch is agreed with the farm |
 | Heights | h min at max rotation 0.50 m (agroPV standard) · 1.30 m (grazing) · 2.10 m (advanced agroPV); axis at 1.50 / 2.30 / 3.10 m; top at 2.50 / 3.30 / 4.10 m | IT-PC | confirmed |
-| Length of a 1V27 | **32.33 m** (27 modules = 31.14 m + **1.19 m** drive / motor gap) | IT-PC DWG, block extents | verify (the 1V28 is taken as 33.48 m with the same gap) |
+| Length of a 1V27 | **32.33 m** (27 modules = 31.14 m + **1.19 m** drive / motor gap) | IT-PC DWG, block extents | confirmed; the 1V28 is 33.48 m with the same gap (USER) |
 | Gap between trackers in line | 0.50 m («distanza tra due stringhe contigue») | IT-PC | confirmed |
 | Trackers in line | **4 at most**, then a 4.00 m gap | IT-PC DWG, panel «distanza tra strada nord-sud e trackers 1V27» (130.81 m = 4 × 32.33 + 3 × 0.50) | confirmed |
 | Slope | up to 15 % in every direction | IT-PC | confirmed |
@@ -78,6 +78,4 @@ covered by modules. Source IT-PC — overall dimensions **verify**.
 
 ## Open questions
 
-- Ground clearance 1.00 m of the fixed structures (read under the section, to confirm).
-- Whether the 1V28 keeps the 1.19 m drive gap of the 1V27.
 - Overall size of the unloading area.

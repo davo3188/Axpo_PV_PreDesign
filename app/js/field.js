@@ -134,7 +134,7 @@ function syncInputs() {
   const pre = presetFor(f.technology, f.structure), half = halfNotation(pre);
   $('fHalf').checked = !!f.halfTables && !!half;
   $('fHalf').disabled = !half;
-  $('fHalfHint').textContent = half ? t('field.halfOk', { half: half.notation }) : t('field.halfNone', { structure: f.structure });
+  $('fHalfHint').textContent = half ? t('field.halfOk', { half: half.notation }) : t(pre?.half === false ? 'field.halfNever' : 'field.halfNone', { structure: f.structure });
   $('fTarget').value = f.targetMWp ?? '';
   $('fRowOff').value = f.rowOffset;
   $('fColOff').value = f.columnOffset;
