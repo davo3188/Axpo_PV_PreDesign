@@ -164,7 +164,7 @@ await test('every app module loads', async () => {
     if (!r.ok) { missing.push(n); continue; }
     await import(`../app/js/${n}.js`);
   }
-  assert(!missing.length || missing.every(n => n.startsWith('terrain/')), 'missing: ' + missing.join(', '));
+  assert(!missing.length, 'missing: ' + missing.join(', '));
   return `${names.length - missing.length} modules`;
 });
 

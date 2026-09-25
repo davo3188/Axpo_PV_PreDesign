@@ -56,21 +56,38 @@
     <!-- 0 · Terrain -->
     <section class="step" data-step="terrain" hidden>
       <header class="stephd"><span class="num">0</span><div><h2 data-i18n="step.terrain"></h2><p data-i18n="step.terrain.sub"></p></div></header>
+      <p class="hint" data-i18n="terrain.optional"></p>
       <div class="card">
-        <div class="cardhd"><b data-i18n="terrain.esri"></b><span class="pill ok" data-i18n="terrain.default"></span></div>
+        <div class="cardhd"><b data-i18n="terrain.model"></b><span class="pill" id="terPill"></span></div>
+        <div class="btns col">
+          <button type="button" class="btn" id="terEsri" data-i18n="terrain.esriBtn"></button>
+          <button type="button" class="btn" id="terDtm" data-i18n="terrain.dtmBtn"></button>
+        </div>
         <p class="hint" data-i18n="terrain.esriHint"></p>
+        <label class="l" for="terCell" data-i18n="terrain.cell"></label>
+        <input id="terCell" type="number" min="1" max="50" step="1">
+        <p class="hint" data-i18n="terrain.cellHint"></p>
+        <div id="terStatus" class="hint" hidden></div>
+        <div id="terInfo"></div>
+        <div class="btns"><button type="button" class="linkbtn" id="terClear" data-i18n="terrain.clear" hidden></button></div>
       </div>
-      <div class="card soon">
-        <div class="cardhd"><b data-i18n="terrain.upload"></b><span class="pill" data-i18n="soon"></span></div>
-        <p class="hint" data-i18n="terrain.uploadHint"></p>
+      <div class="card">
+        <div class="cardhd"><b data-i18n="terrain.slope"></b></div>
+        <label class="chk"><input type="checkbox" id="terShow"> <span data-i18n="terrain.show"></span></label>
+        <div class="legend" id="terLegend"></div>
+      </div>
+      <div class="card">
+        <div class="cardhd"><b data-i18n="terrain.limit"></b></div>
+        <div id="terRule"></div>
+        <label class="chk"><input type="checkbox" id="terApply"> <span data-i18n="terrain.apply"></span></label>
+        <label class="l" for="terMinPatch" data-i18n="terrain.minPatch"></label>
+        <input id="terMinPatch" type="number" min="0" step="50">
+        <p class="hint" data-i18n="terrain.minPatchHint"></p>
+        <div id="terCut"></div>
       </div>
       <div class="card soon">
         <div class="cardhd"><b data-i18n="terrain.contours"></b><span class="pill" data-i18n="soon"></span></div>
         <p class="hint" data-i18n="terrain.contoursHint"></p>
-      </div>
-      <div class="card soon">
-        <div class="cardhd"><b data-i18n="terrain.slope"></b><span class="pill" data-i18n="soon"></span></div>
-        <p class="hint" data-i18n="terrain.slopeHint"></p>
       </div>
     </section>
 
@@ -257,7 +274,8 @@
 <div id="toast" aria-live="polite"></div>
 <input type="file" id="fileImport" accept=".axpo,.geojson,.json,.kml,.kmz,.zip,.csv,.txt,.dwg,.dxf" multiple hidden>
 <input type="file" id="fileProject" accept=".pvpd" hidden>
-<input type="file" id="fileRoadmap" accept=".xlsx,.xls,.csv" hidden>
+<input type="file" id="fileRoadmap" accept=".xlsx,.xlsm,.xls,.csv" hidden>
+<input type="file" id="fileDtm" accept=".tif,.tiff" hidden>
 <script type="module" src="./js/main.js"></script>
 </body>
 </html>

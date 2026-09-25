@@ -1,0 +1,313 @@
+// Step 0 · Terrain (optional). The terrain is sampled on a grid in the local metric frame of the site, from Esri World
+// Elevation or from a DTM / DSM of the user (GeoTIFF). From the grid come the slope map (classes in percent) and,
+// with the slope limit of the chosen structure (catalog slopeLimits: fixed 3V 10 % N-S and E-W, tracker 1V 15 % in
+// every direction), the areas cut from the buildable area. No terrain, no cut: the step is optional.
+import { getSdk } from '../sdk.js';
+import { store, change, on, emit, uid } from '../state.js';
+import { t, tn, fmt } from '../i18n.js';
+import { siteFrame, extraCuts } from '../areas.js';
+import { makeLocalFrame } from '../geo/localframe.js';
+import { toSdk } from '../geo/convert.js';
+import { slopeLimitFor } from '../catalog.js';
+import { parseNotation } from '../layout/structures.js';
+import { candidatesForProjected, crsLabel, looksProjected } from '../crs.js';
+import { projectPointToWgs84 } from '../geo/convert.js';
+import { chooseCrs } from '../ui/crsdialog.js';
+import { toast } from '../ui/toast.js';
+import { gradients, limitMask, classMask, dropSmallPatches, maskToRings, SLOPE_CLASSES, gridOver, bilinear } from './slope.js';
+import { terrainData, setTerrainData, saveLocal, loadLocal, clearLocal } from './store.js';
+import { openGeoTiff } from './dtm.js';
+
+const ESRI_ELEVATION = 'https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer';
+const CLASS_COLOURS = [[46, 160, 67], [160, 200, 60], [240, 190, 40], [235, 110, 40], [190, 30, 60]];
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+let view = null, layer = null, busy = false;
+
+// ── grid of the site ──
+// Local bounding box of the gross and net areas in the frame of the site
+function siteBox(frame) {
+  let b = null;
+  for (const f of store.project.features) {
+    if (f.category !== 'gross' && f.category !== 'net') continue;
+    const g = toSdk(f.geometry), l = g && frame.toLocal(g);
+    const e = l && l.extent;
+    if (!e) continue;
+    b = b ? { xmin: Math.min(b.xmin, e.xmin), ymin: Math.min(b.ymin, e.ymin), xmax: Math.max(b.xmax, e.xmax), ymax: Math.max(b.ymax, e.ymax) }
+      : { xmin: e.xmin, ymin: e.ymin, xmax: e.xmax, ymax: e.ymax };
+  }
+  return b;
+}
+export function gridForSite(cellSize = store.project.terrain.cellSize) {
+  const frame = siteFrame();
+  if (!frame) return null;
+  const box = siteBox(frame);
+  return box ? { frame, def: gridOver(box, cellSize) } : null;
+}
+// centres of the cells as an SDK multipoint in the frame (k × k points per cell when k > 1, for averaging)
+function centres(frame, def, k = 1) {
+  const { Multipoint } = getSdk();
+  const pts = [];
+  for (let j = 0; j < def.ny; j++) for (let i = 0; i < def.nx; i++) for (let b = 0; b < k; b++) for (let a = 0; a < k; a++) {
+    pts.push([def.x0 + (i + (a + 0.5) / k) * def.cell, def.y0 + (j + (b + 0.5) / k) * def.cell]);
+  }
+  return new Multipoint({ points: pts, spatialReference: frame.sr });
+}
+function describe(frame, def, z, extra) {
+  let zmin = Infinity, zmax = -Infinity, missing = 0;
+  for (const v of z) { if (Number.isFinite(v)) { if (v < zmin) zmin = v; if (v > zmax) zmax = v; } else missing++; }
+  return { id: uid(), lon0: frame.lon0, lat0: frame.lat0, x0: def.x0, y0: def.y0, cell: def.cell, nx: def.nx, ny: def.ny,
+    zmin: Number.isFinite(zmin) ? zmin : null, zmax: Number.isFinite(zmax) ? zmax : null, missing, loadedAt: new Date().toISOString(), ...extra };
+}
+
+// ── sources ──
+// Esri World Elevation (global service; resolution depends on the country)
+export async function sampleEsri(frame, def, query = null) {
+  const { ElevationLayer, Multipoint, SpatialReference, projectOperator } = getSdk();
+  const wgs = projectOperator.execute(centres(frame, def), SpatialReference.WGS84).points;
+  let run = query;
+  if (!run) {
+    const el = new ElevationLayer({ url: ESRI_ELEVATION });
+    await el.load();
+    run = mp => el.queryElevation(mp, { demResolution: 'finest-contiguous', noDataValue: -99999 }).then(r => r.geometry.points.map(p => p[2]));
+  }
+  const z = new Float32Array(wgs.length);
+  const CHUNK = 5000;
+  for (let s = 0; s < wgs.length; s += CHUNK) {
+    const part = wgs.slice(s, s + CHUNK);
+    const zs = await run(new Multipoint({ points: part, spatialReference: SpatialReference.WGS84 }));
+    zs.forEach((v, i) => { z[s + i] = v === -99999 || !Number.isFinite(v) ? NaN : v; });
+  }
+  return z;
+}
+
+// A GeoTIFF of the user, in any system the projection engine knows (datum shifts applied by the SDK)
+export async function sampleDtm(file, frame, def, askCrs = askTiffCrs) {
+  const { SpatialReference, projectOperator } = getSdk();
+  const tif = await openGeoTiff(file);
+  let wkid = tif.epsg;
+  if (!wkid) wkid = await askCrs(file, tif);
+  if (!wkid) return null;
+  const sr = new SpatialReference({ wkid });
+  // averaging: up to 4 × 4 points per cell when the model is finer than the grid
+  const k = Math.max(1, Math.min(4, Math.round(def.cell / Math.abs(tif.res[0])), Math.floor(Math.sqrt(4e6 / (def.nx * def.ny)))));
+  const pts = projectOperator.execute(centres(frame, def, k), sr)?.points;
+  if (!pts) throw new Error(t('err.tiffProjection', { wkid }));
+  // pixel positions (from the centre of the first pixel) and the window that holds them
+  const u = new Float64Array(pts.length), v = new Float64Array(pts.length);
+  let umin = Infinity, umax = -Infinity, vmin = Infinity, vmax = -Infinity;
+  for (let n = 0; n < pts.length; n++) {
+    u[n] = (pts[n][0] - tif.origin[0]) / tif.res[0]; v[n] = (pts[n][1] - tif.origin[1]) / tif.res[1];
+    if (u[n] < umin) umin = u[n]; if (u[n] > umax) umax = u[n]; if (v[n] < vmin) vmin = v[n]; if (v[n] > vmax) vmax = v[n];
+  }
+  const c0 = Math.max(0, Math.floor(umin) - 1), r0 = Math.max(0, Math.floor(vmin) - 1);
+  const c1 = Math.min(tif.width, Math.ceil(umax) + 2), r1 = Math.min(tif.height, Math.ceil(vmax) + 2);
+  if (c1 <= c0 || r1 <= r0) throw new Error(t('err.tiffOutside'));
+  if ((c1 - c0) * (r1 - r0) > 60e6) throw new Error(t('err.tiffTooLarge'));
+  const win = await tif.read(c0, r0, c1, r1), w = c1 - c0, h = r1 - r0;
+  const z = new Float32Array(def.nx * def.ny);
+  const kk = k * k;
+  for (let cellIx = 0; cellIx < z.length; cellIx++) {
+    let s = 0, n = 0;
+    for (let q = 0; q < kk; q++) {
+      const p = cellIx * kk + q;
+      const val = bilinear(win, w, h, u[p] - c0, v[p] - r0, tif.noData);
+      if (Number.isFinite(val)) { s += val; n++; }
+    }
+    // a cell only partly covered by the model is unknown: the mean of part of it is not the elevation of its centre
+    z[cellIx] = n === kk ? s / n : NaN;
+  }
+  return { z, wkid, res: Math.abs(tif.res[0]) };
+}
+
+// A GeoTIFF that does not say its system: the national systems that put it in their own country are proposed
+async function askTiffCrs(file, tif) {
+  const [xmin, ymin, xmax, ymax] = tif.bbox;
+  const sample = [[xmin, ymin], [xmax, ymax], [(xmin + xmax) / 2, (ymin + ymax) / 2]];
+  if (!looksProjected(sample)) return 4326;
+  const cands = candidatesForProjected(sample, projectPointToWgs84);
+  return chooseCrs({ file: file.name, candidates: cands, current: store.project.crs.wkid,
+    validate: w => sample.every(p => { const ll = projectPointToWgs84(w, p); return ll && Math.abs(ll[0]) <= 180 && Math.abs(ll[1]) <= 90; }) });
+}
+
+// ── keeping the grid ──
+export async function useGrid(meta, z, { persist = true } = {}) {
+  setTerrainData(meta, z);
+  if (persist) await saveLocal(meta, z);
+  cache.clear();
+  change('terrain', p => { p.terrain.grid = meta; p.terrain.source = meta.source; });
+}
+export async function removeTerrain() {
+  setTerrainData(null, null);
+  cache.clear();
+  await clearLocal();
+  change('terrain', p => { p.terrain.grid = null; p.terrain.source = null; });
+}
+async function loadTerrain(kind, file = null) {
+  if (busy) return;
+  const g = gridForSite();
+  if (!g) { toast(t('terrain.noSite'), 'err'); return; }
+  busy = true;
+  status(t(kind === 'esri' ? 'terrain.loadingEsri' : 'terrain.loadingDtm', { cells: fmt(g.def.nx * g.def.ny) }));
+  try {
+    let meta, z;
+    if (kind === 'esri') {
+      z = await sampleEsri(g.frame, g.def);
+      meta = describe(g.frame, g.def, z, { source: 'esri', name: 'Esri World Elevation' });
+    } else {
+      const r = await sampleDtm(file, g.frame, g.def);
+      if (!r) { status(''); return; }
+      z = r.z;
+      meta = describe(g.frame, g.def, z, { source: 'dtm', name: file.name, epsg: r.wkid, resolution: r.res });
+    }
+    if (meta.zmin === null) throw new Error(t('err.tiffOutside'));
+    await useGrid(meta, z);
+    if (g.def.grown) toast(t('terrain.cellGrown', { cell: fmt(g.def.cell, 2) }), '', 9000);
+    toast(t('terrain.loaded', { name: meta.name, cells: fmt(meta.nx * meta.ny), cell: fmt(meta.cell, 2) }), 'ok', 8000);
+  } catch (e) {
+    console.error(e);
+    toast(t('terrain.loadFail', { err: e.message || e }), 'err', 12000);
+  } finally { busy = false; status(''); render(); }
+}
+
+// ── analysis ──
+const cache = new Map();
+function memo(key, fn) { if (!cache.has(key)) cache.set(key, fn()); return cache.get(key); }
+function grads() {
+  const m = terrainData.meta;
+  return m && terrainData.z ? memo('g:' + m.id, () => gradients({ ...m, z: terrainData.z })) : null;
+}
+export function currentSlopeRule() {
+  const f = store.project.field;
+  return slopeLimitFor(f.technology, parseNotation(f.structure));
+}
+function gridFrame(m) { return memo('f:' + m.id, () => makeLocalFrame({ lon0: m.lon0, lat0: m.lat0 })); }
+function minCells(m) { return Math.ceil((store.project.terrain.minPatch || 0) / (m.cell * m.cell)); }
+// polygon (in the frame of the grid) of the cells of a mask; null when empty
+function maskPolygon(m, mask) {
+  const { Polygon, simplifyOperator } = getSdk();
+  const rings = maskToRings(mask, m.nx, m.ny, m.x0, m.y0, m.cell);
+  if (!rings.length) return null;
+  return simplifyOperator.execute(new Polygon({ rings, spatialReference: gridFrame(m).sr }));
+}
+// The cells over the slope limit of the structure, as a polygon in the frame of the grid: { polygon, rule, cells }
+export function overLimit() {
+  const m = terrainData.meta, g = grads(), rule = currentSlopeRule();
+  if (!m || !g || !rule) return null;
+  const key = `o:${m.id}:${rule.id}:${store.project.terrain.minPatch}`;
+  return memo(key, () => {
+    const { mask } = limitMask(g, rule);
+    dropSmallPatches(mask, m.nx, m.ny, minCells(m));
+    let cells = 0; for (const v of mask) cells += v;
+    return { polygon: cells ? maskPolygon(m, mask) : null, rule, cells };
+  });
+}
+
+// Cut for the buildable area (areas.js computeArea): the cells over the limit, in the frame of the site
+extraCuts.push(frame => {
+  const P = store.project;
+  if (!P.terrain.grid || !terrainData.z || P.terrain.grid.id !== terrainData.meta?.id) {
+    return P.terrain.grid && !terrainData.z ? { note: t('terrain.noteMissing') } : null;
+  }
+  const rule = currentSlopeRule();
+  if (!rule) return { note: t('terrain.noteNoRule', { structure: P.field.structure }) };
+  if (!P.terrain.applySlopeLimit) return null;
+  if (!coversSite()) return { note: t('terrain.noteOutside') };
+  const o = overLimit();
+  if (!o || !o.polygon) return null;
+  const { projectOperator } = getSdk();
+  const m = terrainData.meta;
+  const same = Math.abs(m.lon0 - frame.lon0) < 1e-9 && Math.abs(m.lat0 - frame.lat0) < 1e-9;
+  const geometry = memo(`c:${m.id}:${rule.id}:${P.terrain.minPatch}:${frame.lon0},${frame.lat0}`, () => same ? o.polygon : projectOperator.execute(o.polygon, frame.sr));
+  return { geometry, kind: 'slope', label: rule.text };
+});
+
+// Does the grid still cover the gross and net areas? (they may have grown since the terrain was loaded)
+function coversSite() {
+  const m = terrainData.meta;
+  if (!m) return true;
+  const box = siteBox(gridFrame(m));
+  if (!box) return true;
+  const tol = m.cell;
+  return box.xmin >= m.x0 - tol && box.ymin >= m.y0 - tol && box.xmax <= m.x0 + m.nx * m.cell + tol && box.ymax <= m.y0 + m.ny * m.cell + tol;
+}
+
+// ── map ──
+function drawMap() {
+  if (!layer) return;
+  const { Graphic, projectOperator } = getSdk();
+  layer.removeAll();
+  const m = terrainData.meta, g = grads(), P = store.project;
+  if (!m || !g) return;
+  const out = [];
+  if (P.terrain.showSlope) {
+    SLOPE_CLASSES.forEach(([lo, hi], c) => {
+      const mask = memo(`k:${m.id}:${c}:${P.terrain.minPatch}`, () => { const x = classMask(g, lo, hi); dropSmallPatches(x, m.nx, m.ny, minCells(m)); return x; });
+      const poly = memo(`kp:${m.id}:${c}:${P.terrain.minPatch}`, () => maskPolygon(m, mask));
+      if (poly) out.push(new Graphic({ geometry: projectOperator.execute(poly, view.spatialReference), symbol: { type: 'simple-fill', color: [...CLASS_COLOURS[c], 0.38], outline: { color: [0, 0, 0, 0], width: 0 } } }));
+    });
+  }
+  const o = P.terrain.applySlopeLimit ? overLimit() : null;
+  if (o && o.polygon) out.push(new Graphic({ geometry: projectOperator.execute(o.polygon, view.spatialReference),
+    symbol: { type: 'simple-fill', style: 'backward-diagonal', color: [190, 30, 60, 0.75], outline: { color: [190, 30, 60, 0.9], width: 1.2, style: 'dash' } } }));
+  layer.addMany(out);
+}
+
+// ── panel ──
+function status(text) { const el = $('terStatus'); if (el) { el.textContent = text; el.hidden = !text; } }
+function render() {
+  if (!$('terInfo')) return;
+  const P = store.project, m = P.terrain.grid, have = !!(m && terrainData.z && terrainData.meta?.id === m.id);
+  $('terCell').value = P.terrain.cellSize;
+  $('terShow').checked = !!P.terrain.showSlope;
+  $('terApply').checked = !!P.terrain.applySlopeLimit;
+  $('terMinPatch').value = P.terrain.minPatch;
+  $('terClear').hidden = !m;
+  $('terPill').textContent = t(have ? 'terrain.pillOn' : m ? 'terrain.pillMissing' : 'terrain.pillOff');
+  $('terPill').className = 'pill' + (have ? ' ok' : '');
+  $('terInfo').innerHTML = m ? `<div class="hint">${esc(t('terrain.info', { name: m.name, date: m.loadedAt.slice(0, 10), cells: fmt(m.nx * m.ny),
+    cell: fmt(m.cell, 2), zmin: fmt(m.zmin, 1), zmax: fmt(m.zmax, 1) }))}${m.epsg ? esc(' · ' + crsLabel(m.epsg) + ' (EPSG:' + m.epsg + ')') : ''}</div>`
+    + (m.missing ? `<div class="warn">${esc(tn('terrain.missingCells', m.missing))}</div>` : '')
+    + (!have ? `<div class="warn">${esc(t('terrain.noteMissing'))}</div>` : '') : `<div class="hint">${esc(t('terrain.none'))}</div>`;
+  // legend
+  $('terLegend').innerHTML = SLOPE_CLASSES.map(([lo, hi], c) => `<span class="lg"><i style="background:rgb(${CLASS_COLOURS[c].join(',')})"></i>${hi === Infinity ? `> ${lo}` : `${lo}–${hi}`} %</span>`).join('');
+  // slope limit of the structure
+  const rule = currentSlopeRule();
+  $('terRule').innerHTML = rule ? `<div class="hint"><b>${esc(P.field.structure)}</b>: ${esc(rule.text)} <small>(${esc(t('terrain.source', { src: rule.source }))})</small></div>`
+    : `<div class="warn">${esc(t('terrain.noteNoRule', { structure: P.field.structure }))}</div>`;
+  const o = have ? overLimit() : null;
+  $('terCut').innerHTML = o ? `<div class="hint">${esc(t('terrain.overArea', { ha: fmt(o.cells * terrainData.meta.cell ** 2 / 1e4, 2) }))}</div>` : '';
+  drawMap();
+}
+
+export function initTerrain(mapView) {
+  view = mapView;
+  const { GraphicsLayer } = getSdk();
+  layer = new GraphicsLayer({ title: 'Slopes', listMode: 'hide' });
+  view.map.add(layer, 0);
+  const input = $('fileDtm');
+  $('terEsri').onclick = () => loadTerrain('esri');
+  $('terDtm').onclick = () => input.click();
+  input.onchange = () => { const f = input.files && input.files[0]; input.value = ''; if (f) loadTerrain('dtm', f); };
+  $('terClear').onclick = () => { if (confirm(t('terrain.clearConfirm'))) removeTerrain(); };
+  $('terCell').onchange = () => change('terrain', p => { p.terrain.cellSize = Math.min(50, Math.max(1, Number($('terCell').value) || 5)); });
+  $('terShow').onchange = () => change('terrain', p => { p.terrain.showSlope = $('terShow').checked; });
+  $('terApply').onchange = () => change('terrain', p => { p.terrain.applySlopeLimit = $('terApply').checked; });
+  $('terMinPatch').onchange = () => change('terrain', p => { p.terrain.minPatch = Math.max(0, Number($('terMinPatch').value) || 0); });
+  for (const topic of ['terrain', 'field', 'site']) on(topic, render);
+  on('project', () => { cache.clear(); restore(); });
+  restore();
+}
+
+// the grid described by the project: from memory (a project file just opened) or from this browser
+async function restore() {
+  const m = store.project.terrain.grid;
+  if (!m) { if (terrainData.meta) setTerrainData(null, null); render(); return; }
+  if (terrainData.meta?.id !== m.id || !terrainData.z) {
+    const z = await loadLocal(m.id);
+    setTerrainData(m, z);
+    cache.clear();
+    if (z) emit('terrain');
+  }
+  render();
+}

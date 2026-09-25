@@ -8,6 +8,7 @@ import { initAreas, importFiles, pickFiles, zoomToFeatures } from './areas.js';
 import { initModulesUi, renderModules } from './modules.js';
 import { initField } from './field.js';
 import { initOutput } from './output.js';
+import { initTerrain } from './terrain/terrain.js';
 import { initRail, showStep } from './ui/rail.js';
 import { saveProject, openProjectPick, openProjectFile, forgetHandle, PROJECT_EXT } from './io/projectfile.js';
 import { toast } from './ui/toast.js';
@@ -40,6 +41,7 @@ async function start() {
   await view.when();
 
   initAreas(view);
+  initTerrain(view);
   initModulesUi();
   initField(view);
   initOutput();

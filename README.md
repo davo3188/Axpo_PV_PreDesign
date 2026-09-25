@@ -6,8 +6,8 @@ Geoportale (`.axpo`), but does not depend on it. The predesign is for prospectio
 loading Engineering with embryonic projects, and later gives Engineering a useful starting point (they will still
 rely on the topographic survey).
 
-Status: **milestone 2** (2026-09-23) — workflow in steps, areas by category with imports from six formats,
-national coordinate systems, project files. See `docs/plan.md` for what comes next.
+Status: **milestone 3** (2026-09-25) — toolkit archive by country, group standards (module 2382 × 1134 bifacial with
+its power roadmap, 3V9, tracker 1V28), optional terrain step with slope limits. See `docs/plan.md` for what comes next.
 
 ## The workflow
 
@@ -15,9 +15,9 @@ The left rail holds the steps; clicking the active step again folds the panel aw
 
 | Step | Today |
 |---|---|
-| **0 · Terrain** | Placeholder: Esri World Elevation by default; DTM / DSM upload, contour lines and slopes come next |
+| **0 · Terrain** | Optional: Esri World Elevation or your DTM / DSM (GeoTIFF) on a grid over the site, slope map, slopes over the limit of the structure cut from the buildable area; contour lines come next |
 | **1 · Areas** | Import or draw the areas, sorted into categories (below); net area given or computed |
-| **2 · Fields** | Modules, structure, tilt, azimuth, pitch, parametric layout and results (milestone 1) |
+| **2 · Fields** | Modules (power by semester), structure (3V9 / 1V28 by default), tilt, azimuth, pitch, half tables, parametric layout and results |
 | **3 · Infrastructure** | Placeholder: fence and gates, roads (widths from the toolkit), cabins, room for the electrical part |
 | **4 · Output** | Coordinate system for exports, GeoJSON export; KML, Shapefile, DXF and the report come next |
 | **4b · 3D** | Placeholder |
@@ -54,6 +54,35 @@ Ctrl+Shift+S, Ctrl+O), **Import**, and a badge with the coordinate system of the
   linear infrastructure, obstacles, mitigation and agricultural zones are cut out with their own buffers. The panel
   shows gross area, setback, exclusions and the buildable area in hectares.
 
+### 0 · Terrain (optional)
+
+- **Sources** — Esri World Elevation (global service, resolution depends on the country) or a DTM / DSM of your own
+  (GeoTIFF in any system the SDK knows; files without a system go through the same dialog as other imports). The
+  terrain is sampled on a grid of the local metric frame over the gross and net areas plus 30 m (cell 5 m by default;
+  a finer model is averaged over each cell, a cell only partly covered by the model is left without data).
+- **Slopes** — steepest slope and its north–south / east–west components per cell (Horn's weights), shown in classes
+  0–5–10–15–25 %.
+- **Slope limit of the structure** — from the catalog: fixed 3V at most 10 % north–south and 10 % east–west,
+  tracker 1V at most 15 % in every direction; structures without a rule (fixed 2V, AgriPV fixed) are not cut and the
+  panel says so. Cells over the limit (patches under 250 m² ignored, an app setting) are cut from the buildable area.
+- The grid is kept in the browser (IndexedDB) and inside the project file (`terrain/grid.f32`).
+
+### 2 · Fields
+
+- **Standards of the group** — module TOPCon 2382 × 1134 mm bifacial; ground-mounted 3V9 (27 modules) at 15°;
+  tracker 1V28 ±55°, 0.50 m between trackers in line, at most 4 in line then a 4 m gap, 1.19 m drive gap (measured on
+  the Italian drawing); the pitch of trackers is agreed with the farm, so it has no default.
+- **Module power by semester** — the catalog carries the power roadmap of the standard module (sheet «Roadmap
+  Module- Standard», column «CS - PPA FR et EU»); importing a newer roadmap updates it. The power of the current
+  semester is used unless the project picks another period (e.g. the one of construction). Powers loaded more than six
+  months ago raise a warning: the roadmap is updated every six months. Prices are never read.
+- **Modules travel with the project** — the modules a project uses are written into its file and added to the library
+  of whoever opens it; a missing module is reported, never replaced silently.
+- **Minimum pitch by country** — shading angle of the country of the site (Italy 29°, France 35°); countries without
+  a toolkit value get no suggestion instead of a borrowed one.
+- **Half tables** — optional: where a whole table does not fit, a half one (1V14 for the 1V28) takes the grid place.
+  The half table of a 3V9 is not defined yet.
+
 ### Coordinate systems
 
 - **Proposed from the site location**: the country comes from generalized outlines (`app/catalog/countries.json`),
@@ -73,8 +102,10 @@ Ctrl+Shift+S, Ctrl+O), **Import**, and a badge with the coordinate system of the
 
 ## How it works
 
-- **Toolkit catalog** — `app/catalog/toolkit.json`, transcribed from the Design ESQ toolkit sheets. Each value
-  carries its source; values still to be checked on the DWG have `"verify": true` (see `docs/toolkit-extraction.md`).
+- **Toolkit archive and catalog** — `docs/toolkit/` collects the design rules by country (IT, FR, PL, ES, DE, CH)
+  and for the whole group, each value with its source and status; `app/catalog/toolkit.json` holds the values the app
+  uses: group values at the top, country values under `countries.<ISO>` (never borrowed by another country). Values
+  still to be checked have `"verify": true`. `tools/cad/dwg_dump.mjs` reads toolkit DWGs.
   Table sizes are not stored: they come from the module, `n × W + (n − 1) × 0.02`, which reproduces every table
   length of the toolkit (2V13 14.98 m, 3V9 10.37 m, 3V18 20.75 m).
 - **True metres** — areas and the layout are computed in a Transverse Mercator frame centred on the site with
@@ -97,11 +128,18 @@ py -3 scripts/serve.py 8140
 
 Then open `http://localhost:8140/app/`. Tests, all in the browser:
 
-- `http://localhost:8140/tests/` — layout engine (12)
+- `http://localhost:8140/tests/` — layout engine, half tables (14)
+- `http://localhost:8140/tests/modules.html` — roadmap by semester, power periods, six-month alert, country catalog,
+  slope limits, trackers, modules carried by projects (12)
 - `http://localhost:8140/tests/sdk.html` — SDK and local frame (5)
 - `http://localhost:8140/tests/import.html` — classification, v1 → v2 migration, countries and proposed systems,
   every national EPSG code, the import fixtures against the ArcGIS reference areas, Geoportale projects with the
   site-features model, net area, grid connection route, project and GeoJSON round trips (25)
+- `http://localhost:8140/tests/terrain.html` — slopes, masks and outlines, GeoTIFF sampling, slope cut, project file (14)
+- `http://localhost:8140/tests/ui.html` — the real panels on a stand-in map view (5)
+
+Without a browser, or where the CDNs are blocked: `tools/headless` runs every page in headless Chromium with the
+libraries bundled from npm (`npm install && npm run build && npm test`, see its README).
 
 No build step; any static web server works, but the app must be served over http(s), not opened as a file.
 The fixtures in `tests/fixtures` are synthetic and rebuilt with `scripts/make_fixtures.py` (ArcGIS Pro Python,
@@ -112,6 +150,7 @@ arcpy), which also writes the reference values in `expected.json`.
 ```
 app/                  the web app (index.html, css/, js/)
   catalog/            toolkit.json, countries.json (outlines), regions.json (German zone-33 Länder)
+  js/terrain/         step 0: grid sampling (Esri, GeoTIFF), slopes and masks (pure), storage
   js/areas.js         step 1: categories, import, drawing, net area
   js/categories.js    categories and automatic sorting (pure)
   js/crs.js           national systems, country detection, proposals and alerts (pure)
@@ -122,12 +161,13 @@ app/                  the web app (index.html, css/, js/)
   js/io/              importers, project files
   js/ui/              rail, coordinate system dialog, toasts
 tests/                browser tests and synthetic fixtures
-docs/                 plan, decisions, toolkit extraction notes
+docs/                 plan, decisions; toolkit/ = the toolkit archive by country
 scripts/              serve.py (local server without cache), make_fixtures.py
+tools/                headless test runner, CAD (DWG) reader — development tools, not part of the app
 ```
 
 ## Not done yet
 
-Terrain (Esri World Elevation sampling, DTM / DSM upload, slopes in %, contour lines), fence, gates, roads and
-stations from the toolkit, 3D, several fields per site, exports in the national system (KML / Shapefile / DXF),
-report, DWG / DXF import, yield API, electrical design (deliberately left open). See `docs/plan.md`.
+Contour lines, fence, gates, roads and stations from the toolkit (Italian values are in the archive), 3D, several
+fields per site, exports in the national system (KML / Shapefile / DXF), report, DWG / DXF import, yield API,
+electrical design (deliberately left open). See `docs/plan.md`.

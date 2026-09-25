@@ -23,17 +23,32 @@
 - Project files `.pvpd` (save in place, save as, open, Ctrl+S / Ctrl+O); projects of milestone 1 are migrated.
 - Tests: import suite (22) with synthetic fixtures built by arcpy and reference areas from ArcGIS.
 
+## Done — milestone 3 (2026-09-25)
+
+- Toolkit archive by country (`docs/toolkit/`): Italy transcribed from the PC Ground Mounting toolkit (PDF and DWG:
+  shading angle 29°, trackers 1V, roads, clearances, stations, fence), France from the Design ESQ sheets, the other
+  countries listed with what is needed; the group choices of the user. Catalog 0.2 with country sections.
+- Group standards: module 2382 × 1134 bifacial with its power roadmap by semester (import of the group roadmap,
+  period per project, warning after six months), 3V9, tracker 1V28 with drive gap and corridors every 4 trackers.
+- Minimum pitch from the shading angle of the country of the site; optional half tables (half strings).
+- Modules written into the project file (no silent replacement on another computer).
+- Step 0 · Terrain (optional): Esri World Elevation or GeoTIFF on a grid of the local frame, slope map, slope limits
+  of the structure (fixed 3V 10 % N-S / E-W, tracker 1V 15 %) cut from the buildable area; grid in the project file.
+- Tests: modules (12), terrain (14), panels on a stand-in view (5), half tables against the oracle; headless runner.
+
 ## Next
 
-1. **Toolkit checks** — read the toolkit DWGs (IT, "ALL" for PL/DE, FR) to confirm the values marked `verify`:
+0. **Open answers** (see `docs/toolkit/group.md`): half table of a 3V9; slope limits of fixed 2V and AgriPV
+   fixed; when the NZIA module variant applies; when the perimeter road may be left out; shading angle and roads of
+   PL, ES, DE, CH.
+1. **Toolkit checks** — read the toolkit DWGs (IT done 2026-09-25, "ALL" for PL/DE, FR) to confirm the values marked `verify`:
    track width and orientation of the transversal tracks, AgriPV minimum pitches and heights, station sizes per kVA.
    Get the "Consignes techniques Pré design centrales au sol" (pitch rules), the road widths and a referent in the
    Design ESQ team.
-2. **0 · Terrain** — Esri World Elevation sampled on the site; DTM / DSM upload (GeoTIFF first; ASC / XYZ to
-   confirm with the teams); slope and aspect in %; contour lines imported (to build a terrain where there is no
-   model) and generated (to show and export); slope classes from the toolkit proposed as exclusions.
-3. **3 · Infrastructure** — fence (offset of the buildable area) with gates from the toolkit, roads with the
-   toolkit widths, delivery and transformer stations placed with the NORMES rules (delivery station at the entrance,
+2. **0 · Terrain** — contour lines imported (to build a terrain where there is no model) and generated (to show
+   and export); ASC / XYZ models if the teams use them; terrain in the 3D view and in the shade of obstacles.
+3. **3 · Infrastructure** — fence (offset of the buildable area: 6 m to the structures with the perimeter road in
+   Italy) with gates from the toolkit, roads with the toolkit widths (IT: 3 m light, 4 m heavy, R12 / R17), delivery and transformer stations placed with the NORMES rules (delivery station at the entrance,
    transformer stations by MWp, fire tank within 50 m of the entrance); room reserved for the electrical part.
 4. **2 · Fields** — several fields per site with their own parameters, manual exceptions (remove / lock tables)
    kept across regenerations; obstacle shade (height → shadow on the tables, with the terrain).

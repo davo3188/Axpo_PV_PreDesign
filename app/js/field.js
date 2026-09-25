@@ -170,6 +170,7 @@ function setup() {
   if (area.error) return { warns: [t('warn.noSite')] };
   if (area.ignored) warns.push(tn('warn.lineNoBuffer', area.ignored));
   for (const w of area.notes || []) warns.push(w);
+  for (const x of area.extras || []) if (x.kind === 'slope' && x.area >= 5) warns.push(t('warn.slopeCut', { ha: fmt(x.area / 1e4, 2), rule: x.label }));
   const mod = moduleById(f.moduleId);
   const s = parseNotation(f.structure);
   if (!mod) warns.push(t(f.moduleId ? 'warn.moduleMissing' : 'warn.noModule'));
