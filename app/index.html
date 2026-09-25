@@ -20,6 +20,7 @@
       <button class="tb" id="btnSaveAs" data-i18n="top.saveAs" data-i18n-title="top.saveAsTitle"></button>
     </div>
     <button class="tb" id="btnImport" data-i18n="top.import" data-i18n-title="top.importTitle"></button>
+    <button class="tb quick" id="btnQuick" data-i18n="quick.btn" data-i18n-title="quick.btnTitle"></button>
     <button class="tb crs" id="crsBadge" data-i18n-title="top.crsTitle"></button>
     <button class="tb" id="btnTheme" data-i18n-title="top.theme" data-i18n-aria="top.theme">☾</button>
   </div>
@@ -94,7 +95,8 @@
     <!-- 1 · Areas -->
     <section class="step" data-step="areas" hidden>
       <header class="stephd"><span class="num">1</span><div><h2 data-i18n="step.areas"></h2><p data-i18n="step.areas.sub"></p></div></header>
-      <div class="btns"><button type="button" class="btn primary" id="areasImport" data-i18n="areas.import"></button></div>
+      <div class="btns"><button type="button" class="btn primary" id="areasImport" data-i18n="areas.import"></button>
+        <button type="button" class="btn" id="areasQuick" data-i18n="quick.btn" data-i18n-title="quick.btnTitle"></button></div>
       <p class="hint" data-i18n="areas.importHint"></p>
       <div id="areaCats"></div>
       <div class="card">
@@ -109,6 +111,8 @@
     <!-- 2 · Fields -->
     <section class="step" data-step="fields" hidden>
       <header class="stephd"><span class="num">2</span><div><h2 data-i18n="step.fields"></h2><p data-i18n="step.fields.sub"></p></div></header>
+      <div class="btns"><button type="button" class="btn primary" id="fQuick" data-i18n="quick.btn" data-i18n-title="quick.btnTitle"></button></div>
+      <p class="hint" data-i18n="quick.fieldsHint"></p>
 
       <details class="sec" id="secModules">
         <summary><span class="ico" aria-hidden="true">▦</span><span class="ttl"><b data-i18n="mod.title"></b><small data-i18n="mod.sub"></small></span><span class="cnt" id="modCnt"></span></summary>

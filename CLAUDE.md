@@ -72,7 +72,8 @@ mettersi al lavoro.**
   riferimento, area netta, round trip), `/tests/terrain.html` (step 0), `/tests/ui.html` (pannelli veri su una vista
   finta). Devono essere tutti verdi prima di un commit.
 - Senza browser o con i CDN bloccati (sessione cloud): `tools/headless` (`npm install && npm run build && npm test`)
-  esegue tutte le pagine in Chromium headless con SDK e librerie presi da npm. La pagina dell'app va comunque provata
+  esegue tutte le pagine in Chromium headless con SDK e librerie presi da npm; GitHub Actions lo fa a ogni push
+  (`.github/workflows/tests.yml`). La pagina dell'app va comunque provata
   in un browser vero (con il bundle npm la MapView non parte).
 - DWG del toolkit: `tools/cad/dwg_dump.mjs` elenca testi, quote (valore misurato) e blocchi per zona del disegno.
 - Le pagine di test impostano `window.__PVP_TEST__` così non sovrascrivono il progetto salvato dall'app

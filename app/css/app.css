@@ -219,3 +219,8 @@ kbd { font: 11px/1 var(--font); border: 1px solid var(--line); border-radius: 4p
 /* terrain: slope classes */
 .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; font-size: 11.5px; color: var(--mut); }
 .legend .lg i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 4px; vertical-align: -2px; opacity: .8; }
+
+/* quick predesign */
+.tb.quick { background: var(--axpo-gradient); color: #fff; border-color: transparent; font-weight: 600; }
+.tb.quick:hover { filter: brightness(1.08); background: var(--axpo-gradient); }
+dialog.dlg.quick { max-width: 420px; }

@@ -11,6 +11,7 @@ import { initTerrain, sampleDtm, gridForSite, useGrid } from '../app/js/terrain/
 import { initModulesUi, library } from '../app/js/modules.js';
 import { initField, last } from '../app/js/field.js';
 import { initOutput, buildGeoJSON } from '../app/js/output.js';
+import { initQuick, runQuick } from '../app/js/quick.js';
 import { makeLocalFrame } from '../app/js/geo/localframe.js';
 import { toGeoJSON, projectPointToWgs84 } from '../app/js/geo/convert.js';
 
@@ -53,13 +54,39 @@ store.project = p;
 
 await test('panels start: areas, terrain, modules, fields, output', async () => {
   try { initAreas(view); } catch (e) { throw new Error('areas: ' + e.message); }
-  initTerrain(view); initModulesUi(); initField(view); initOutput();
+  initTerrain(view); initModulesUi(); initField(view); initOutput(); initQuick();
   await wait(600);
   assert(/Italy|RDN2008/.test(document.getElementById('outCrsAlerts').innerText + text('crsBadge')), 'national system proposed');
   assert(document.getElementById('fStruct').value === '3V9', 'standard structure');
   assert(/TOPCon/.test(document.getElementById('fModule').selectedOptions[0].text), 'standard module chosen');
   assert(/29° shading angle/.test(text('fPitchHint')), 'Italian minimum pitch: ' + text('fPitchHint'));
   return text('fPitchHint');
+});
+
+// the quick predesign dialog: open it, check what it proposes, run it
+async function quickDialog(set = () => {}) {
+  document.getElementById('btnQuick').click();
+  await wait(100);
+  const dlg = document.querySelector('dialog.quick');
+  assert(dlg && dlg.open, 'dialog open');
+  const form = dlg.querySelector('form');
+  set(form);
+  const seen = { pitch: form.pitch.value, hint: form.querySelector('[data-hint]').textContent, tech: form.tech.value };
+  dlg.querySelector('button[type=submit]').click();
+  await wait(1500);
+  return seen;
+}
+
+await test('quick predesign, fixed: 3V9, Italian minimum pitch, optimised position, in one click', async () => {
+  change('field', q => { q.field.structure = '2V13'; q.field.pitch = null; q.field.moduleId = null; });
+  const seen = await quickDialog(form => { form.tech.value = 'ground-fixed'; form.dispatchEvent(new Event('change')); });
+  assert(seen.pitch === '10.3' && /Italy \(29° shading angle\)/.test(seen.hint), `proposed ${seen.pitch}: ${seen.hint}`);
+  const f = store.project.field, r = last.result;
+  assert(f.structure === '3V9' && f.tiltDeg === 15 && f.pitch === 10.3, `field ${f.structure} ${f.tiltDeg} ${f.pitch}`);
+  assert(r && r.tables > 100 && r.power.wp === 650, `result ${r && r.tables}`);
+  assert(store.project.plannedModules.includes(f.moduleId), 'the module is planned for the project');
+  assert(!document.querySelector('dialog.quick'), 'dialog closed');
+  return `${r.tables} tables, ${r.dcMWp.toFixed(2)} MWp, offsets ${f.rowOffset} / ${f.columnOffset}`;
 });
 
 await test('fields: 3V9 at the Italian minimum pitch fills the site', async () => {
@@ -97,6 +124,20 @@ await test('terrain: DTM loaded, slope map drawn, 3V cut (10 %), tracker kept (1
   return `${t.tables} trackers 1V28 (${(t.geom.tableLength).toFixed(2)} m), ${t.dcMWp.toFixed(2)} MWp`;
 });
 
+await test('quick predesign, tracker: the pitch agreed with the farm is asked, then 1V28 fills the site', async () => {
+  let blocked = false;
+  const seen = await quickDialog(form => {
+    form.tech.value = 'agri-tracker'; form.dispatchEvent(new Event('change'));
+    blocked = !form.checkValidity();          // empty pitch: the form does not run
+    form.pitch.value = '5.5';
+  });
+  assert(blocked && seen.pitch === '5.5' && /agreed with the farm/.test(seen.hint) && /5.50 \/ 6.00/.test(seen.hint), seen.hint);
+  const f = store.project.field, r = last.result;
+  assert(f.structure === '1V28' && f.pitch === 5.5 && f.tracks.tables === 4, `field ${f.structure} ${f.pitch} ${f.tracks.tables}`);
+  assert(r && r.tables > 20, `trackers ${r && r.tables}`);
+  return `${r.tables} trackers at 5.50 m, ${r.dcMWp.toFixed(2)} MWp`;
+});
+
 await test('half tables option and GeoJSON export', async () => {
   const half = document.getElementById('fHalf');
   assert(!half.disabled, 'half tracker defined for 1V28');
@@ -118,6 +159,7 @@ await test('area summary shows the slope cut and the terrain panel its figures',
   assert(/it_dtm_plane.tif/.test(text('terInfo')), 'terrain info');
   replaceProject(defaultProject());
   await wait(400);
+  assert(await runQuick({ technology: 'ground-fixed' }) === null, 'no site: the quick predesign says so');
   return text('terCut');
 });
 

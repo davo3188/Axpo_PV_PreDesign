@@ -23,6 +23,12 @@ The left rail holds the steps; clicking the active step again folds the panel aw
 | **4b · 3D** | Placeholder |
 | **Electrical** | Kept open on purpose |
 
+**⚡ Quick predesign** (top bar, 1 · Areas, 2 · Fields): once the site is loaded, one dialog with three choices
+already filled in — technology (ground-mounted fixed 3V9, AgriPV tracker 1V28, AgriPV fixed), pitch (the toolkit
+minimum of the country for fixed structures; for trackers the one agreed with the farm, asked), terrain (optional:
+Esri World Elevation with the slope limit) — then one click: group standards, standard module at the power of the
+current semester, best grid position, results. Everything stays editable in 2 · Fields.
+
 The top bar has **New / Open / Save / Save as** (project files `.pvpd`, a zip holding `project.json`; Ctrl+S,
 Ctrl+Shift+S, Ctrl+O), **Import**, and a badge with the coordinate system of the exports.
 
@@ -136,10 +142,11 @@ Then open `http://localhost:8140/app/`. Tests, all in the browser:
   every national EPSG code, the import fixtures against the ArcGIS reference areas, Geoportale projects with the
   site-features model, net area, grid connection route, project and GeoJSON round trips (25)
 - `http://localhost:8140/tests/terrain.html` — slopes, masks and outlines, GeoTIFF sampling, slope cut, project file (14)
-- `http://localhost:8140/tests/ui.html` — the real panels on a stand-in map view (5)
+- `http://localhost:8140/tests/ui.html` — the real panels on a stand-in map view, quick predesign (7)
 
 Without a browser, or where the CDNs are blocked: `tools/headless` runs every page in headless Chromium with the
-libraries bundled from npm (`npm install && npm run build && npm test`, see its README).
+libraries bundled from npm (`npm install && npm run build && npm test`, see its README). GitHub Actions runs the same
+on every push (`.github/workflows/tests.yml`).
 
 No build step; any static web server works, but the app must be served over http(s), not opened as a file.
 The fixtures in `tests/fixtures` are synthetic and rebuilt with `scripts/make_fixtures.py` (ArcGIS Pro Python,

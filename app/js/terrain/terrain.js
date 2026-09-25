@@ -143,10 +143,11 @@ export async function removeTerrain() {
   await clearLocal();
   change('terrain', p => { p.terrain.grid = null; p.terrain.source = null; });
 }
-async function loadTerrain(kind, file = null) {
-  if (busy) return;
+// kind 'esri' or 'dtm' (with the file); true when a terrain was loaded
+export async function loadTerrain(kind, file = null) {
+  if (busy) return false;
   const g = gridForSite();
-  if (!g) { toast(t('terrain.noSite'), 'err'); return; }
+  if (!g) { toast(t('terrain.noSite'), 'err'); return false; }
   busy = true;
   status(t(kind === 'esri' ? 'terrain.loadingEsri' : 'terrain.loadingDtm', { cells: fmt(g.def.nx * g.def.ny) }));
   try {
@@ -156,7 +157,7 @@ async function loadTerrain(kind, file = null) {
       meta = describe(g.frame, g.def, z, { source: 'esri', name: 'Esri World Elevation' });
     } else {
       const r = await sampleDtm(file, g.frame, g.def);
-      if (!r) { status(''); return; }
+      if (!r) { status(''); return false; }
       z = r.z;
       meta = describe(g.frame, g.def, z, { source: 'dtm', name: file.name, epsg: r.wkid, resolution: r.res });
     }
@@ -164,9 +165,11 @@ async function loadTerrain(kind, file = null) {
     await useGrid(meta, z);
     if (g.def.grown) toast(t('terrain.cellGrown', { cell: fmt(g.def.cell, 2) }), '', 9000);
     toast(t('terrain.loaded', { name: meta.name, cells: fmt(meta.nx * meta.ny), cell: fmt(meta.cell, 2) }), 'ok', 8000);
+    return true;
   } catch (e) {
     console.error(e);
     toast(t('terrain.loadFail', { err: e.message || e }), 'err', 12000);
+    return false;
   } finally { busy = false; status(''); render(); }
 }
 

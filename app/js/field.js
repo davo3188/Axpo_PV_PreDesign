@@ -24,6 +24,34 @@ let view, areaLayer, tableLayer;
 export const last = { result: null };
 const $ = id => document.getElementById(id);
 
+// The group standard of a technology put into the field: structure, tilt, azimuth and the preset values
+// (the pitch of trackers is agreed with the farm: it is cleared)
+export function applyStandard(f, technology) {
+  f.technology = technology;
+  const std = { ...TECH_FALLBACK[technology], ...(standardFor(technology) || {}) };
+  f.structure = std.structure;
+  f.tiltDeg = technology === 'agri-tracker' ? 0 : std.tiltDeg;
+  f.azimuthDeg = std.azimuthDeg;
+  if (technology === 'agri-tracker') f.pitch = null;
+  applyPreset(f, presetFor(technology, f.structure));
+  if (technology === 'agri-tracker') f.tiltDeg = 0;
+}
+
+// Toolkit minimum pitch of the field as it is: fixed structures from the shading angle of the country of the site,
+// others from their preset. { pitch (rounded up to the cm), source: 'country' | 'preset', angle, country } or null
+export function toolkitMinPitch(f = store.project.field) {
+  const s = parseNotation(f.structure), mod = moduleById(f.moduleId);
+  const pre = s ? presetFor(f.technology, s.notation) : null;
+  if (f.technology === 'ground-fixed') {
+    const shade = shadingRule();
+    if (!shade || !s || !mod) return null;
+    const g = tableGeometry({ notation: s, module: mod, moduleGap: f.moduleGap, tiltDeg: f.tiltDeg, extraLength: pre?.driveGap || 0 });
+    return { pitch: Math.ceil(minPitch(g, shade.value) * 100) / 100, source: 'country', angle: shade.value, country: countryName(crsState.iso) };
+  }
+  if (f.technology === 'agri-fixed' && pre?.minPitch) return { pitch: pre.minPitch, source: 'preset', id: pre.id };
+  return null;
+}
+
 // Structure preset values that go into the field: tilt, azimuth, gap between tables, corridors
 function applyPreset(f, pre) {
   if (!pre) return;
@@ -44,16 +72,7 @@ export function initField(mapView) {
 
   const set = (fn) => change('field', p => fn(p.field));
   const num = el => (el.value === '' ? null : Number(el.value));
-  $('fTech').onchange = () => set(f => {
-    f.technology = $('fTech').value;
-    const std = { ...TECH_FALLBACK[f.technology], ...(standardFor(f.technology) || {}) };
-    f.structure = std.structure;
-    f.tiltDeg = f.technology === 'agri-tracker' ? 0 : std.tiltDeg;
-    f.azimuthDeg = std.azimuthDeg;
-    if (f.technology === 'agri-tracker') f.pitch = null;   // agreed with the farm for each project
-    applyPreset(f, presetFor(f.technology, f.structure));
-    if (f.technology === 'agri-tracker') f.tiltDeg = 0;
-  });
+  $('fTech').onchange = () => set(f => applyStandard(f, $('fTech').value));
   $('fStruct').onchange = () => set(f => {
     f.structure = $('fStruct').value.trim();
     applyPreset(f, presetFor(f.technology, f.structure));
@@ -160,6 +179,8 @@ function shadingRule() {
 // ── generation ──
 let timer = 0;
 function schedule() { clearTimeout(timer); timer = setTimeout(generate, 120); }
+// regenerate now (instead of after the short delay that gathers the changes); returns the result
+export function generateNow() { clearTimeout(timer); generate(); return last.result; }
 
 function setup() {
   const p = store.project, f = p.field;
@@ -311,9 +332,10 @@ function renderResults(r) {
 const kpi = (key, v) => `<div class="kpi"><div class="v">${v}</div><div class="k">${t(key)}</div></div>`;
 
 // ── optimise the grid position ──
-function optimise() {
+// Tries 12 × 12 offsets of rows and columns and keeps the one with the most tables. Returns { n, gain } or null.
+export function optimise() {
   const st = setup();
-  if (!st.geom) { toast(st.warns[0] || t('res.none'), 'err'); return; }
+  if (!st.geom) { toast(st.warns[0] || t('res.none'), 'err'); return null; }
   const f = store.project.field;
   const step = st.geom.tableLength + f.tableGap;
   const count = opt => fillRows(st.rings, opt).tables.reduce((n, tb) => n + (tb.half ? 0.5 : 1), 0);
@@ -328,6 +350,7 @@ function optimise() {
   change('field', p => { p.field.rowOffset = best.row; p.field.columnOffset = best.col; });
   const gain = best.n - base;
   $('fOptHint').textContent = t('field.optimised', { tables: fmt(best.n, best.n % 1 ? 1 : 0), gain: gain > 0 ? `+${fmt(gain, gain % 1 ? 1 : 0)}` : '±0' });
+  return { n: best.n, gain };
 }
 
 function escapeHtml(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
