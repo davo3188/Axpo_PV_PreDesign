@@ -1,0 +1,29 @@
+# Browser tests of PV Predesign, on every push and pull request: every page of tests/ in headless Chromium, with
+# the ArcGIS Maps SDK and the libraries bundled from npm (tools/headless). The app page itself is checked by hand.
+name: tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  browser-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: tools/headless
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tools/headless/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: npm test
+        env:
+          VERBOSE: '1'

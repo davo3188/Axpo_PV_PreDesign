@@ -18,21 +18,27 @@ export function defaultProject() {
     features: [],
     settings: { boundarySetback: 0 },
     plannedModules: [],       // ids from the module library
+    moduleDefs: [],           // copies of the modules the project uses, written with the project file
     field: {
       technology: 'ground-fixed',
-      structure: '2V13',
+      structure: '3V9',       // group standard (catalog standards)
       moduleId: null,
+      powerPeriod: null,      // roadmap period of the module power ('2027-S1'); null = the current semester
       tiltDeg: 15,
       azimuthDeg: 180,
       pitch: null,
       tableGap: 0.30,
       moduleGap: 0.02,
-      tracks: { enabled: false, spacing: 100, width: 4 },
+      tracks: { enabled: false, spacing: 100, width: 4, tables: null },   // tables: a corridor every N tables instead of every spacing m
+      halfTables: false,      // half tables (half strings) where a whole one does not fit: an option of the designer
       targetMWp: null,
       rowOffset: 0,
       columnOffset: 0,
     },
     specificYield: null,
+    // step 0 (optional): terrain model sampled on a grid in a local metric frame; the grid itself is kept in the
+    // browser (IndexedDB) and in the project file, the project holds its description
+    terrain: { source: null, cellSize: 5, applySlopeLimit: true, minPatch: 250, showSlope: true, grid: null },
   };
 }
 
@@ -54,6 +60,7 @@ export function upgrade(p) {
     crs: { ...d.crs, ...(p.crs || {}) },
     settings: { ...d.settings, ...(p.settings || {}) },
     field: { ...d.field, ...(p.field || {}), tracks: { ...d.field.tracks, ...((p.field || {}).tracks || {}) } },
+    terrain: { ...d.terrain, ...(p.terrain || {}) },
   };
   if ((p.version || 1) < 2) {
     // v1: role site|exclusion|reference and global buffers -> v2 categories with per-object attributes

@@ -2,6 +2,8 @@
 import { t } from '../i18n.js';
 import { store, replaceProject, PROJECT_FORMAT } from '../state.js';
 import { toast } from '../ui/toast.js';
+import { usedModules } from '../modules.js';
+import { terrainData, setTerrainData, saveLocal } from '../terrain/store.js';
 
 const JSZIP_URL = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm';
 export const PROJECT_EXT = '.pvpd';
@@ -10,8 +12,11 @@ let handle = null;   // file handle of the open project (File System Access API)
 export async function projectBlob() {
   const JSZip = (await import(JSZIP_URL)).default;
   const zip = new JSZip();
-  const p = { ...store.project, saved: new Date().toISOString(), app: 'PV Predesign' };
+  // the modules the project uses travel with it: it opens with the same modules on any computer
+  const p = { ...store.project, moduleDefs: usedModules(), saved: new Date().toISOString(), app: 'PV Predesign' };
   zip.file('project.json', JSON.stringify(p, null, 1));
+  // the terrain grid of the project (step 0), as 32-bit floats row by row from the south-west cell
+  if (p.terrain?.grid && terrainData.meta?.id === p.terrain.grid.id && terrainData.z) zip.file('terrain/grid.f32', terrainData.z.buffer);
   return zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
 }
 
@@ -77,6 +82,11 @@ export async function openProjectFile(file, fileHandle = null) {
     if (!pj) throw new Error(t('err.notProject'));
     const p = JSON.parse(await pj.async('text'));
     if (!p || p.format !== PROJECT_FORMAT) throw new Error(t('err.notProject'));
+    const grid = p.terrain?.grid, zf = zip.file('terrain/grid.f32');
+    if (grid && zf) {
+      const z = new Float32Array(await zf.async('arraybuffer'));
+      if (z.length === grid.nx * grid.ny) { setTerrainData(grid, z); await saveLocal(grid, z); }
+    }
     replaceProject(p);
     handle = fileHandle;
     toast(t('proj.opened', { name: store.project.name }), 'ok');

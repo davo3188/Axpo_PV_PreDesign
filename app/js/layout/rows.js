@@ -84,22 +84,28 @@ export function intersectRanges(a, b) {
 
 // Column grid along a row: tables of length len separated by gap; with blockTables = K, a corridor of width
 // corridorWidth replaces the gap after every K tables. Returns the start of every table that fits in [a, b].
+// With halfLen > 0 (half tables, an option of the designer), a grid slot where a whole table does not fit takes a
+// half table at its left end, or at its right end, if one fits: halves stay on the column grid.
 export function columnsIn(a, b, grid) {
-  const { u0, len, gap, blockTables, corridorWidth } = grid;
+  const { u0, len, gap, blockTables, corridorWidth, halfLen = 0 } = grid;
   const step = len + gap;
-  const out = [];
+  const slots = [];
   if (!(blockTables > 0) || !isFinite(blockTables)) {
-    let i = Math.ceil((a - u0) / step - EPS);
-    for (let u = u0 + i * step; u + len <= b + EPS; i++, u = u0 + i * step) out.push({ col: i, u });
-    return out;
+    const i0 = Math.floor((a - u0) / step) - 1, i1 = Math.ceil((b - u0) / step) + 1;
+    for (let i = i0; i <= i1; i++) slots.push({ col: i, u: u0 + i * step });
+  } else {
+    const K = blockTables, blockStep = K * len + (K - 1) * gap + corridorWidth;
+    const j0 = Math.floor((a - u0) / blockStep) - 1, j1 = Math.ceil((b - u0) / blockStep) + 1;
+    for (let j = j0; j <= j1; j++) for (let m = 0; m < K; m++) slots.push({ col: j * K + m, u: u0 + j * blockStep + m * step });
   }
-  const K = blockTables, blockStep = K * len + (K - 1) * gap + corridorWidth;
-  const j0 = Math.floor((a - u0) / blockStep) - 1, j1 = Math.ceil((b - u0) / blockStep) + 1;
-  for (let j = j0; j <= j1; j++) {
-    for (let m = 0; m < K; m++) {
-      const u = u0 + j * blockStep + m * step;
-      if (u >= a - EPS && u + len <= b + EPS) out.push({ col: j * K + m, u });
-    }
+  const out = [];
+  for (const { col, u } of slots) {
+    if (u >= a - EPS && u + len <= b + EPS) { out.push({ col, u }); continue; }
+    if (!(halfLen > 0 && halfLen < len)) continue;
+    const left = u >= a - EPS && u + halfLen <= b + EPS;
+    const ru = u + len - halfLen;
+    if (left) out.push({ col, u, half: 'L' });
+    if (ru >= a - EPS && u + len <= b + EPS && (!left || ru >= u + halfLen + gap - EPS)) out.push({ col, u: ru, half: 'R' });
   }
   return out;
 }
@@ -114,9 +120,10 @@ export function columnsIn(a, b, grid) {
 //   rowOffset         shift of the first row, 0 <= rowOffset < pitch (m)
 //   columnOffset      shift of the column grid, 0 <= columnOffset < tableLength + tableGap (m)
 //   blockTables, corridorWidth   optional corridors across the rows every blockTables tables
+//   halfLength        optional length of a half table (half strings), used where a whole table does not fit
 //   maxTables         optional cap (target capacity)
 // }
-// Returns { tables: [{ row, col, corners: [[x, y] x4] }], rows, frame }.
+// Returns { tables: [{ row, col, corners: [[x, y] x4], half: 'L' | 'R' (half tables only) }], rows }.
 export function fillRows(area, opt) {
   const A = opt.azimuthDeg ?? 180;
   const len = opt.tableLength, depth = opt.planDepth, pitch = opt.pitch, gap = opt.tableGap ?? 0.3;
@@ -138,6 +145,7 @@ export function fillRows(area, opt) {
     len, gap,
     blockTables: opt.blockTables ?? 0,
     corridorWidth: opt.corridorWidth ?? 0,
+    halfLen: opt.halfLength ?? 0,
   };
   const maxTables = opt.maxTables ?? Infinity;
   const tables = [];
@@ -150,11 +158,18 @@ export function fillRows(area, opt) {
     const lo = lowerBound(vertexYs, v), hi = lowerBound(vertexYs, v + depth);
     const ranges = stripRanges(edges, vertexYs.slice(lo, hi), v, v + depth);
     let inRow = 0;
+    const halves = new Map();   // col -> half placed in this row: a slot split by a hole may offer both ends
     for (const [a, b] of ranges) {
-      for (const { col, u } of columnsIn(a, b, grid)) {
+      for (const { col, u, half } of columnsIn(a, b, grid)) {
         if (tables.length >= maxTables) break;
-        const corners = [[u, v], [u + len, v], [u + len, v + depth], [u, v + depth]].map(p => fromRowFrame(p, A));
-        tables.push({ row: k, col, corners });
+        if (half) {
+          const other = halves.get(col);
+          if (other && (other.half === half || (half === 'R' ? u < other.u + grid.halfLen + gap - EPS : other.u < u + grid.halfLen + gap - EPS))) continue;
+          halves.set(col, { half, u });
+        }
+        const l = half ? grid.halfLen : len;
+        const corners = [[u, v], [u + l, v], [u + l, v + depth], [u, v + depth]].map(p => fromRowFrame(p, A));
+        tables.push(half ? { row: k, col, corners, half } : { row: k, col, corners });
         inRow++;
       }
     }

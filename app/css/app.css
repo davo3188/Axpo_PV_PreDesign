@@ -191,6 +191,7 @@ input:focus, select:focus { outline: 2px solid color-mix(in srgb, var(--accent) 
 .it .sw { flex: none; width: 10px; height: 10px; border-radius: 3px; }
 .it .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .it .nm small { display: block; color: var(--mut); font-size: 11px; }
+.it .nm small.stale { color: var(--warn); font-weight: 600; white-space: normal; }
 .it select { width: auto; padding: 2px 4px; font-size: 12px; }
 .it .x { flex: none; background: none; border: 0; cursor: pointer; color: var(--mut); font-size: 15px; line-height: 1; padding: 2px 4px; border-radius: 4px; }
 .it .x:hover { color: var(--err); background: var(--hover); }
@@ -214,3 +215,12 @@ input:focus, select:focus { outline: 2px solid color-mix(in srgb, var(--accent) 
 #banner { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; box-shadow: 0 4px 14px rgba(0,0,0,.2); z-index: 5; font-size: 12.5px; }
 #banner[hidden] { display: none; }
 kbd { font: 11px/1 var(--font); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; background: var(--hover); }
+
+/* terrain: slope classes */
+.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; font-size: 11.5px; color: var(--mut); }
+.legend .lg i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 4px; vertical-align: -2px; opacity: .8; }
+
+/* quick predesign */
+.tb.quick { background: var(--axpo-gradient); color: #fff; border-color: transparent; font-weight: 600; }
+.tb.quick:hover { filter: brightness(1.08); background: var(--axpo-gradient); }
+dialog.dlg.quick { max-width: 420px; }

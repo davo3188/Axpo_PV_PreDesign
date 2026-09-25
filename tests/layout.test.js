@@ -10,6 +10,7 @@ function test(name, fn) {
 }
 function assert(cond, msg) { if (!cond) throw new Error(msg); }
 function near(a, b, tol, what) { assert(Math.abs(a - b) <= tol, `${what}: ${a} vs ${b} (tol ${tol})`); }
+function eq2(a, b, what) { assert(a === b, `${what}: ${a} vs ${b}`); }
 
 // ── reference module of the toolkit sheets: 2.382 x 1.134 m ──
 const M = { length: 2.382, width: 1.134 };
@@ -142,20 +143,64 @@ test('performance: ~50 MWp site', () => {
   return `${r.tables.length} tables, ${r.rows} rows, ${mwp.toFixed(1)} MWp at 620 Wp, ${ms.toFixed(0)} ms`;
 });
 
+test('half tables: a half takes the grid place where a whole table does not fit', () => {
+  const rect = [[[0, 0], [25, 0], [25, 5], [0, 5]]];
+  const opt = { tableLength: 10, planDepth: 5, pitch: 10, tableGap: 0, rowOffset: 0, columnOffset: 0 };
+  eq2(fillRows(rect, opt).tables.length, 2, 'without halves');
+  const r = fillRows(rect, { ...opt, halfLength: 5 });
+  eq2(r.tables.length, 3, 'with halves');
+  const h = r.tables.find(t => t.half);
+  near(Math.min(...h.corners.map(c => c[0])), 20, 1e-9, 'half at the start of the third slot');
+  near(Math.max(...h.corners.map(c => c[0])), 25, 1e-9, 'half length');
+  // a slot cut in two by a hole takes a half at each end when both fit with the table gap between them
+  const two = fillRows([[[0, 0], [10, 0], [10, 5], [5.4, 5], [5.4, 0.001], [4.6, 0.001], [4.6, 5], [0, 5]]], { ...opt, tableLength: 10, halfLength: 4.5 });
+  eq2(two.tables.filter(t => t.half).map(t => t.half).join(''), 'LR', 'both ends of a split slot');
+  return '2 whole + 1 half; split slot L + R';
+});
+
+test('half tables: engine = brute force (200 cases)', () => {
+  const rnd = mulberry32(20260925);
+  let placed = 0, halves = 0;
+  for (let n = 0; n < 200; n++) {
+    const outer = star(rnd, 0, 0, 60, 180, 6 + Math.floor(rnd() * 14));
+    const rings = [outer];
+    if (rnd() < 0.6) rings.push(star(rnd, (rnd() - 0.5) * 30, (rnd() - 0.5) * 30, 5, 20, 5 + Math.floor(rnd() * 5)));
+    const opt = { azimuthDeg: 90 + rnd() * 180, tableLength: 6 + rnd() * 30, planDepth: 2 + rnd() * 6,
+      tableGap: rnd() < 0.5 ? 0.3 : 0.5, rowOffset: rnd() * 5, columnOffset: rnd() * 5 };
+    opt.halfLength = opt.tableLength * (0.4 + rnd() * 0.2);
+    opt.pitch = opt.planDepth + 0.5 + rnd() * 6;
+    if (rnd() < 0.3) { opt.blockTables = 1 + Math.floor(rnd() * 4); opt.corridorWidth = 4; }
+    const res = fillRows(rings, opt);
+    const got = new Set(res.tables.map(t => `${t.row}:${t.col}${t.half || ''}`));
+    const want = bruteForce(rings, opt);
+    for (const k of want) assert(got.has(k), `case ${n}: missing ${k}`);
+    for (const k of got) assert(want.has(k), `case ${n}: ${k} is not expected`);
+    placed += res.tables.length; halves += res.tables.filter(t => t.half).length;
+  }
+  return `${placed} tables of which ${halves} halves, all verified`;
+});
+
 // ── oracle ──
 function bruteForce(rings, opt) {
   const A = opt.azimuthDeg, len = opt.tableLength, depth = opt.planDepth, gap = opt.tableGap, step = len + gap;
+  const h = opt.halfLength || 0, K = opt.blockTables || 0;
   const uv = rings.flat().map(p => toRowFrame(p, A));
   const umin = Math.min(...uv.map(p => p[0])), umax = Math.max(...uv.map(p => p[0]));
   const vmin = Math.min(...uv.map(p => p[1])), vmax = Math.max(...uv.map(p => p[1]));
   const u0 = umin + (opt.columnOffset % step), v0 = vmin + (opt.rowOffset % opt.pitch);
+  // start of the table of column i (with corridors: a corridor replaces the gap after every K tables)
+  const slotU = i => K ? u0 + Math.floor(i / K) * (K * len + (K - 1) * gap + opt.corridorWidth) + (((i % K) + K) % K) * step : u0 + i * step;
+  const fits = (u, v, l) => rectInside([[u, v], [u + l, v], [u + l, v + depth], [u, v + depth]].map(p => fromRowFrame(p, A)), rings);
   const ok = new Set();
   for (let k = 0; v0 + k * opt.pitch + depth <= vmax; k++) {
     const v = v0 + k * opt.pitch;
-    for (let i = Math.floor((umin - u0) / step) - 1; u0 + i * step <= umax; i++) {
-      const u = u0 + i * step;
-      const corners = [[u, v], [u + len, v], [u + len, v + depth], [u, v + depth]].map(p => fromRowFrame(p, A));
-      if (rectInside(corners, rings)) ok.add(`${k}:${i}`);
+    for (let i = Math.floor((umin - u0) / step) - K - 2; slotU(i) <= umax; i++) {
+      const u = slotU(i);
+      if (fits(u, v, len)) { ok.add(`${k}:${i}`); continue; }
+      if (!h) continue;
+      const L = fits(u, v, h), R = fits(u + len - h, v, h);
+      if (L) ok.add(`${k}:${i}L`);
+      if (R && (!L || u + len - h >= u + h + gap - 1e-9)) ok.add(`${k}:${i}R`);
     }
   }
   return ok;

@@ -79,9 +79,10 @@ export function buildGeoJSON() {
     const polys = r.tablesLocal.map(tb => new Polygon({ rings: [[tb.corners[0], tb.corners[3], tb.corners[2], tb.corners[1], tb.corners[0]]], spatialReference: r.frame.sr }));
     const wgs = projectOperator.executeMany(polys, SpatialReference.WGS84);
     const f = store.project.field;
-    wgs.forEach((g, i) => feats.push({ type: 'Feature', geometry: toGeoJSON(g), properties: {
-      category: 'table', row: r.tablesLocal[i].row, col: r.tablesLocal[i].col, structure: f.structure, modules: r.geom.modules,
-      module: moduleLabel(r.module), wp: r.module.wp, tilt_deg: f.technology === 'agri-tracker' ? 0 : f.tiltDeg, azimuth_deg: f.azimuthDeg } }));
+    wgs.forEach((g, i) => { const tb = r.tablesLocal[i], half = !!tb.half; feats.push({ type: 'Feature', geometry: toGeoJSON(g), properties: {
+      category: 'table', row: tb.row, col: tb.col, structure: half ? r.halfGeom.notation : f.structure, half,
+      modules: half ? r.halfGeom.modules : r.geom.modules, module: moduleLabel(r.module, f.powerPeriod), wp: r.power.wp,
+      power_period: r.power.period || null, tilt_deg: f.technology === 'agri-tracker' ? 0 : f.tiltDeg, azimuth_deg: f.azimuthDeg } }); });
   }
   return feats.length ? { type: 'FeatureCollection', features: feats } : null;
 }

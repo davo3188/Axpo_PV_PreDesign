@@ -16,6 +16,9 @@ let view, featLayer, sketchLayer, sketchVM;
 let drawing = null;          // { category, tool }
 let editing = null;          // { id }
 export const crsState = { alerts: [], suggested: null, iso: null };
+// Other cuts of the buildable area, registered by other steps (terrain: slopes over the limit of the structure).
+// fn(frame) -> null | { geometry (polygon in the frame), kind, label } | { note } (a message for the results)
+export const extraCuts = [];
 const openCats = new Set(['gross', 'net', 'exclusion']);
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -100,6 +103,8 @@ export function initAreas(mapView) {
   sb.onchange = () => change('settings', p => { p.settings.boundarySetback = Math.max(0, Number(sb.value) || 0); });
 
   on('site', () => { render(); updateCrs(true); });
+  on('terrain', renderSummarySoon);
+  on('field', renderSummarySoon);   // the slope limit depends on the structure
   on('settings', () => { $('boundarySetback').value = store.project.settings.boundarySetback; renderSummarySoon(); });
   on('project', () => { render(); updateCrs(false); zoomToFeatures(); });
   render();
@@ -447,11 +452,14 @@ function renderSummary() {
   if (r.netMode === 'given') k.push(kpi(ha(r.netGivenArea), t('areas.sumNetGiven')));
   else if (r.setbackArea > 0) k.push(kpi(minus(r.setbackArea), t('areas.sumSetback', { m: fmt(store.project.settings.boundarySetback, 1) })));
   k.push(kpi(minus(Math.max(0, r.baseArea - r.buildableArea)), t('areas.sumExcluded')));
+  const slope = (r.extras || []).filter(x => x.kind === 'slope').reduce((s, x) => s + x.area, 0);
   k.push(kpi(ha(r.buildableArea), t('areas.sumBuildable'), 'big'));
   const spread = siteSpreadKm();
   const routes = routeSummary();
   el.innerHTML = `<div class="kpis">${k.join('')}</div>
     <div class="hint">${esc(t(r.netMode === 'given' ? 'areas.modeGiven' : 'areas.modeComputed'))}</div>
+    ${slope >= 5 ? `<div class="hint">${esc(t('areas.sumSlope', { ha: fmt(slope / 1e4, 2) }))}</div>` : ''}
+    ${(r.notes || []).map(n => `<div class="hint">${esc(n)}</div>`).join('')}
     ${routes ? `<div class="hint">${esc(routes)}</div>` : ''}
     ${spread > SPREAD_WARN_KM ? `<div class="warn">${esc(t('warn.spread', { km: fmt(spread, 0) }))}</div>` : ''}
     ${r.ignored ? `<div class="warn">${esc(tn('warn.lineNoBuffer', r.ignored))}</div>` : ''}
@@ -567,13 +575,22 @@ export function computeArea(frame) {
     else if (d > 0) cuts.push(S.bufferOperator.execute(l, d));
     else ignored++;
   }
+  const notes = [], extras = [];
+  for (const fn of extraCuts) {
+    let r = null;
+    try { r = fn(frame); } catch (e) { console.warn('[areas] extra cut', e); }
+    if (r && r.note) notes.push(r.note);
+    if (r && r.geometry && r.geometry.rings && r.geometry.rings.length) { cuts.push(r.geometry); extras.push(r); }
+  }
   const cutAll = union(cuts.filter(g => g && g.rings && g.rings.length));
   const buildable = base && cutAll ? S.differenceOperator.execute(base, cutAll) : base;
   const buildableArea = area(buildable);
   const grossArea = area(gross), baseArea = area(base);
+  // area each extra cut takes from the base (it may overlap other cuts)
+  for (const x of extras) { const i = S.intersectionOperator.execute(base, x.geometry); x.area = area(i); }
   return { gross, grossArea, netGivenArea: area(netGiven), base, baseArea, netMode,
     setbackArea: netMode === 'computed' ? Math.max(0, grossArea - baseArea) : 0,
-    buildable: buildableArea > 0 ? buildable : null, buildableArea, ignored, siteArea: grossArea || area(netGiven) };
+    buildable: buildableArea > 0 ? buildable : null, buildableArea, ignored, siteArea: grossArea || area(netGiven), notes, extras };
 }
 
 // ── coordinate system chosen from the site location ──

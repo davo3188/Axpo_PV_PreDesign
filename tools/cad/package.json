@@ -1,0 +1,7 @@
+{
+  "name": "pv-predesign-cad-tools",
+  "private": true,
+  "type": "module",
+  "description": "Reads toolkit DWG files to transcribe their values (development tool, not part of the app).",
+  "devDependencies": { "@mlightcad/libredwg-web": "0.7.14" }
+}
