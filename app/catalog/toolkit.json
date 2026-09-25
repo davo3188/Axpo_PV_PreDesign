@@ -1,6 +1,6 @@
 {
  "schema": "pv-predesign-catalog",
- "version": "0.2.1",
+ "version": "0.2.2",
  "updated": "2026-09-25",
  "owner": "Design ESQ team (Urbasolar) - to be confirmed",
  "notes": "Transcribed from the toolkit documents of the group; the archive behind every value is docs/toolkit/ (one file per country). Every value carries its source; 'verify: true' marks values read from a drawing or an extraction that still need a check. Top-level values hold for every country; country values live under countries.<ISO>. The app never borrows a country value for another country: a missing rule is reported as missing. Table sizes are computed from the chosen module; pitch is always set by the user.",
@@ -34,7 +34,13 @@
    "source": "USER",
    "note": "Half strings (half tables) only as an option selected by the designer"
   },
-  "module": "std-topcon-2382"
+  "module": "std-topcon-2382",
+  "perimeterRoad": {
+   "suggestedUpToMWp": 9,
+   "mode": "suggestion",
+   "source": "USER",
+   "note": "A template preferred for small plants up to about 9 MWp: proposed by the app, always the designer's choice (with it the fence stays 6 m from the structures in Italy: 1 + 4 m road + 1)"
+  }
  },
  "modules": [
   {
@@ -488,11 +494,6 @@
     },
     "unit": "m",
     "source": "IT-PC"
-   },
-   "perimeterRoad": {
-    "rule": true,
-    "source": "USER",
-    "note": "A standing rule; when it may be left out is open"
    },
    "buildings": [
     {

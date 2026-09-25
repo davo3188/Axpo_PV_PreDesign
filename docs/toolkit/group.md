@@ -50,12 +50,11 @@ Bifacial power (Wp) by period, column «CS - PPA FR et EU», read on 2026-09-25:
 
 | Item | Value | Source | Status |
 |---|---|---|---|
-| Perimeter road | a standing rule (the fence–structure distance with a perimeter road is 6 m, see `IT.md`) | USER («una sorta di regola») | confirmed as a rule; when it can be left out is open |
+| Perimeter road | a **template preferred for small plants, up to about 9 MWp**; the app proposes it and the designer decides (with it the fence is 6 m from the structures in Italy, see `IT.md`) | USER | confirmed — a suggestion, never a constraint |
 | Transformer stations | about **one every 3 MWp** (common practice: one every 2.5–5 MWp, depending on the transformers) | USER | part of the electrical design, kept open: used only if the designer chooses to place them |
 
 ## Open questions
 
 - 15 % of fixed 2V and AgriPV fixed: steepest slope (every direction, as applied) or north–south and east–west
   separately (as for the 3V)?
-- When the perimeter road may be left out.
 - Shading angle, roads and stations for PL, ES, DE, CH (see the country files).

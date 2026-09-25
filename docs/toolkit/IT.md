@@ -54,7 +54,7 @@ version» at AO 25°. Supports: vertical piles or concrete footing (shape and nu
 | North–south road → tracker ends | 4 m road + 2 m | IT-PC DWG | confirmed |
 | Road between two blocks with a transformer station | 2 m + 4 m road + 3 m (station side), station 1 m off the road | IT-PC DWG | confirmed |
 | Station position | on the **south side** of the road; align the structures with the farthest one | IT-PC | confirmed |
-| Perimeter road | a standing rule | USER (`group.md`) | when it may be left out: open |
+| Perimeter road | template preferred up to about 9 MWp, the designer decides | USER (`group.md`) | confirmed |
 
 ## Stations (concrete; size to be checked for each project)
 
